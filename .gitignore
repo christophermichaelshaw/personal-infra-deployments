@@ -1,0 +1,23 @@
+# Kubernetes
+*.yaml.swp
+.kube/
+secrets/
+
+# SOPS
+*.age
+*.key
+.sops*
+
+# Git
+*.log
+*.bak
+*.tmp
+
+# OS / Editor / Ansible
+.DS_Store
+.idea/
+.vscode/
+__pycache__/
+*.retry
+*.cache
+*.tar.gz
