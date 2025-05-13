@@ -1,7 +1,11 @@
 # Kubernetes
 *.yaml.swp
 .kube/
-secrets/
+
+# Ignore unencrypted temp secrets only
+secrets/*.env
+secrets/*.tmp
+secrets/*.plaintext.yaml
 
 # SOPS
 *.age
@@ -13,6 +17,9 @@ secrets/
 *.bak
 *.tmp
 
+# Other
+*.pem
+
 # OS / Editor / Ansible
 .DS_Store
 .idea/
@@ -21,3 +28,4 @@ __pycache__/
 *.retry
 *.cache
 *.tar.gz
+
