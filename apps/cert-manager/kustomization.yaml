@@ -1,0 +1,4 @@
+# apps/cert-manager/kustomization.yaml
+resources:
+  - helm-release.yaml
+  - resources/clusterissuer.yaml
