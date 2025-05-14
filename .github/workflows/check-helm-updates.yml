@@ -1,0 +1,45 @@
+name: Check Helm Chart Updates
+
+on:
+  schedule:
+    - cron: '0 12 * * 1'  # Every Monday at noon UTC
+  workflow_dispatch:
+
+jobs:
+  helm-check:
+    runs-on: ubuntu-latest
+    name: Check for Helm Chart Updates
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Install Helm
+        uses: azure/setup-helm@v3
+        with:
+          version: v3.14.0
+
+      - name: Add Helm Repos
+        run: |
+          helm repo add jetstack https://charts.jetstack.io
+          helm repo add traefik https://helm.traefik.io/traefik
+          helm repo update
+
+      - name: Check cert-manager version
+        run: |
+          CURRENT_VERSION=$(grep version apps/cert-manager/helm-release.yaml | awk '{print $2}')
+          LATEST_VERSION=$(helm search repo jetstack/cert-manager --versions | grep "^jetstack/cert-manager" | awk '{print $2}' | grep ^${CURRENT_VERSION%\*} | sort -Vr | head -n1)
+          echo "cert-manager: $CURRENT_VERSION → $LATEST_VERSION"
+          if [[ "$LATEST_VERSION" != "$CURRENT_VERSION" ]]; then
+            echo "::warning ::cert-manager chart has a newer version available: $LATEST_VERSION"
+          fi
+
+      - name: Check traefik version
+        run: |
+          CURRENT_VERSION=$(grep version apps/traefik/helm-release.yaml | awk '{print $2}')
+          LATEST_VERSION=$(helm search repo traefik/traefik --versions | grep "^traefik/traefik" | awk '{print $2}' | grep ^${CURRENT_VERSION%\*} | sort -Vr | head -n1)
+          echo "traefik: $CURRENT_VERSION → $LATEST_VERSION"
+          if [[ "$LATEST_VERSION" != "$CURRENT_VERSION" ]]; then
+            echo "::warning ::Traefik chart has a newer version available: $LATEST_VERSION"
+          fi
+
