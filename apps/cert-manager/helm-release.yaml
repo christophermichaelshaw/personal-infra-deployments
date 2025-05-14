@@ -1,0 +1,21 @@
+# apps/cert-manager/helm-release.yaml
+apiVersion: helm.cattle.io/v1
+kind: HelmChart
+metadata:
+  name: cert-manager
+  namespace: cert-manager
+spec:
+  chart: cert-manager
+  repo: https://charts.jetstack.io
+  targetNamespace: cert-manager
+  version: v1.14.*
+  valuesContent: |-
+    installCRDs: true
+    extraArgs:
+      - --dns01-recursive-nameservers-only
+    podDnsPolicy: "None"
+    podDnsConfig:
+      nameservers:
+        - 1.1.1.1
+        - 8.8.8.8
+
