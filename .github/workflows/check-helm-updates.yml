@@ -2,8 +2,11 @@ name: Check Helm Chart Updates
 
 on:
   schedule:
-    - cron: '0 12 * * 1'  # Every Monday at noon UTC
+    - cron: '0 12 * * 1'  # Every Monday at 12:00 UTC
   workflow_dispatch:
+
+env:
+  GH_TOKEN: ${{ secrets.GH_TOKEN }}
 
 jobs:
   helm-check:
@@ -25,21 +28,33 @@ jobs:
           helm repo add traefik https://helm.traefik.io/traefik
           helm repo update
 
-      - name: Check cert-manager version
+      - name: Install GitHub CLI
+        uses: cli/cli-action@v2
+
+      - name: Check cert-manager version and create issue if newer exists
         run: |
           CURRENT_VERSION=$(grep version apps/cert-manager/helm-release.yaml | awk '{print $2}')
           LATEST_VERSION=$(helm search repo jetstack/cert-manager --versions | grep "^jetstack/cert-manager" | awk '{print $2}' | grep ^${CURRENT_VERSION%\*} | sort -Vr | head -n1)
+
           echo "cert-manager: $CURRENT_VERSION → $LATEST_VERSION"
+
           if [[ "$LATEST_VERSION" != "$CURRENT_VERSION" ]]; then
-            echo "::warning ::cert-manager chart has a newer version available: $LATEST_VERSION"
+            gh issue create \
+              --title "cert-manager chart update: $CURRENT_VERSION → $LATEST_VERSION" \
+              --body "The cert-manager Helm chart has a newer version available.\n\n- Current: \`$CURRENT_VERSION\`\n- Latest: \`$LATEST_VERSION\`\n\nPlease update \`apps/cert-manager/helm-release.yaml\` accordingly." \
+              --label "helm-update"
           fi
 
-      - name: Check traefik version
+      - name: Check traefik version and create issue if newer exists
         run: |
           CURRENT_VERSION=$(grep version apps/traefik/helm-release.yaml | awk '{print $2}')
           LATEST_VERSION=$(helm search repo traefik/traefik --versions | grep "^traefik/traefik" | awk '{print $2}' | grep ^${CURRENT_VERSION%\*} | sort -Vr | head -n1)
-          echo "traefik: $CURRENT_VERSION → $LATEST_VERSION"
-          if [[ "$LATEST_VERSION" != "$CURRENT_VERSION" ]]; then
-            echo "::warning ::Traefik chart has a newer version available: $LATEST_VERSION"
-          fi
 
+          echo "traefik: $CURRENT_VERSION → $LATEST_VERSION"
+
+          if [[ "$LATEST_VERSION" != "$CURRENT_VERSION" ]]; then
+            gh issue create \
+              --title "Traefik chart update: $CURRENT_VERSION → $LATEST_VERSION" \
+              --body "The Traefik Helm chart has a newer version available.\n\n- Current: \`$CURRENT_VERSION\`\n- Latest: \`$LATEST_VERSION\`\n\nPlease update \`apps/traefik/helm-release.yaml\` accordingly." \
+              --label "helm-update"
+          fi
