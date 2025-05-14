@@ -1,0 +1,4 @@
+# apps/traefik/kustomization.yaml
+resources:
+  - helm-release.yaml
+
