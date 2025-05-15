@@ -1,22 +1,17 @@
-apiVersion: helm.toolkit.fluxcd.io/v2beta1
+apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
   name: traefik
   namespace: kube-system
 spec:
-  interval: 10m
+  interval: 5m
   chart:
     spec:
       chart: traefik
-      version: 26.1.*  # pin to latest v2 chart series
+      version: v26.0.x
       sourceRef:
         kind: HelmRepository
         name: traefik
         namespace: flux-system
-  valuesFrom:
-    - kind: ConfigMap
-      name: traefik-values
-  values:
-    # fallback if valuesFrom fails; should be minimal
-    additionalArguments:
-      - "--api.dashboard=false"
+  valuesFiles:
+    - ./resources/traefik-values.yaml
