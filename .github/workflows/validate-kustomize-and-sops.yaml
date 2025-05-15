@@ -2,50 +2,6 @@ name: Validate Kustomize and SOPS
 
 on:
   push:
-    branches: [main]
-  pull_request:
-    branches: [main]
-
-jobs:
-  validate:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y curl gpg jq
-          curl -sSfL https://github.com/getsops/sops/releases/latest/download/sops-linux-amd64 -o /usr/local/bin/sops
-          chmod +x /usr/local/bin/sops
-
-          # Dynamically fetch the latest kustomize version
-          VERSION=$(curl -s https://api.github.com/repos/kubernetes-sigs/kustomize/releases/latest | jq -r '.tag_name' | cut -d'/' -f2)
-          curl -sSfL "https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize%2F${VERSION}/kustomize_${VERSION}_linux_amd64.tar.gz" | tar -xz -C /usr/local/bin
-
-          curl -sSfL https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 -o /usr/local/bin/yq
-          chmod +x /usr/local/bin/yq
-
-      - name: Validate SOPS secrets
-        run: |
-          find clusters -type f -name '*.yaml' | while read -r file; do
-            if grep -q 'sops:' "$file"; then
-              echo "Validating $file..."
-              sops -d "$file" > /dev/null
-            fi
-          done
-
-      - name: Validate Kustomize manifests
-        run: |
-          find clusters -type f -name kustomization.yaml | while read -r kfile; do
-            echo "Validating $(dirname "$kfile")..."
-            kustomize build "$(dirname "$kfile")" > /dev/null
-          done
-name: Validate Kustomize and SOPS
-
-on:
-  push:
     branches:
       - main
   pull_request:
