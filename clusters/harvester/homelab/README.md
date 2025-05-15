@@ -12,7 +12,8 @@ GitOps-managed manifests for the **homelab Harvester cluster**.
 
 ```bash
 sops -d clusters/harvester/homelab/secrets/cloudflare-api.yaml
-
+```
 ## 🧪 Test Manifests
 ```bash
 kustomize build clusters/harvester/homelab
+```
