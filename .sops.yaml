@@ -1,5 +1,5 @@
 creation_rules:
-  - path_regex: 'secrets/.*\.yaml$'
+  - path_regex: 'cluster/harvester.*/secrets/.*\.yaml$'
     encrypted_regex: '^(data|stringData)$'
     age: >-
       age1y0vwzhctddhvy5ltsa3e8lf8xn5s58kdjvjwqst7q9yp76d6e9zq5v5u54,

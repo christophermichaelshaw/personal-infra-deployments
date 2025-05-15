@@ -1,0 +1,42 @@
+additionalArguments:
+  - "--entrypoints.web.address=:80"
+  - "--entrypoints.websecure.address=:443"
+  - "--certificatesresolvers.cloudflare.acme.email=christopher.michael.shaw@gmail.com"
+  - "--certificatesresolvers.cloudflare.acme.storage=/data/acme.json"
+  - "--certificatesresolvers.cloudflare.acme.dnschallenge.provider=cloudflare"
+  - "--certificatesresolvers.cloudflare.acme.dnschallenge=true"
+  - "--certificatesresolvers.cloudflare.acme.dnschallenge.resolvers=1.1.1.1:53"
+
+env:
+  - name: CF_API_EMAIL
+    value: christopher.michael.shaw@gmail.com
+  - name: CF_DNS_API_TOKEN
+    valueFrom:
+      secretKeyRef:
+        name: cloudflare-api
+        key: api-token
+
+ingressRoute:
+  dashboard:
+    enabled: false
+
+logs:
+  general:
+    level: WARN
+  access:
+    enabled: true
+
+persistence:
+  enabled: true
+  path: /data
+  size: 1Gi
+  accessMode: ReadWriteOnce
+  storageClass: longhorn
+
+ports:
+  web:
+    redirectTo: websecure
+  websecure:
+    tls:
+      enabled: true
+      certResolver: cloudflare
