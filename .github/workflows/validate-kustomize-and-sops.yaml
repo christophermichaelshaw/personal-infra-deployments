@@ -2,44 +2,43 @@ name: Validate Kustomize and SOPS
 
 on:
   push:
-    branches:
-      - main
+    branches: [main]
   pull_request:
+    branches: [main]
 
 jobs:
   validate:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Install tools
+      - name: Set up dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y curl gpg
+          sudo apt-get install -y curl gpg jq
           curl -sSfL https://github.com/getsops/sops/releases/latest/download/sops-linux-amd64 -o /usr/local/bin/sops
           chmod +x /usr/local/bin/sops
-          curl -sSfL https://github.com/kubernetes-sigs/kustomize/releases/latest/download/kustomize_v5.3.0_linux_amd64.tar.gz | tar -xz -C /usr/local/bin
+
+          # Dynamically fetch the latest kustomize version
+          VERSION=$(curl -s https://api.github.com/repos/kubernetes-sigs/kustomize/releases/latest | jq -r '.tag_name' | cut -d'/' -f2)
+          curl -sSfL "https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize%2F${VERSION}/kustomize_${VERSION}_linux_amd64.tar.gz" | tar -xz -C /usr/local/bin
+
           curl -sSfL https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 -o /usr/local/bin/yq
           chmod +x /usr/local/bin/yq
 
-      - name: Set up AGE key
+      - name: Validate SOPS secrets
         run: |
-          echo "${{ secrets.AGE_KEY }}" > /tmp/age.key
-          export SOPS_AGE_KEY_FILE=/tmp/age.key
-
-      - name: Find and decrypt secrets
-        run: |
-          find clusters/harvester -type f -name "*.yaml" | grep "/secrets/" | while read -r secret; do
-            echo "Decrypting $secret"
-            sops -d "$secret" > /dev/null
+          find clusters -type f -name '*.yaml' | while read -r file; do
+            if grep -q 'sops:' "$file"; then
+              echo "Validating $file..."
+              sops -d "$file" > /dev/null
+            fi
           done
 
       - name: Validate Kustomize manifests
         run: |
-          find clusters/harvester -type f -name 'kustomization.yaml' | while read -r file; do
-            dir=$(dirname "$file")
-            echo "Validating $dir"
-            kustomize build "$dir" > /dev/null
+          find clusters -type f -name kustomization.yaml | while read -r kfile; do
+            echo "Validating $(dirname "$kfile")..."
+            kustomize build "$(dirname "$kfile")" > /dev/null
           done
