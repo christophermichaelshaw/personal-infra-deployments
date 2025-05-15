@@ -2,51 +2,59 @@ name: Validate Kustomize and SOPS
 
 on:
   push:
-    branches:
-      - main
+    branches: [main]
   pull_request:
+    branches: [main]
 
 jobs:
   validate:
+    name: Validate Manifests
     runs-on: ubuntu-latest
-    env:
-      SOPS_AGE_KEY: ${{ secrets.AGE_PRIVATE_KEY }}
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Install required tools
+      - name: Install jq
         run: |
           sudo apt-get update
-          sudo apt-get install -y curl gpg jq
+          sudo apt-get install -y jq
 
-          # Install sops
-          curl -sSfL https://github.com/getsops/sops/releases/latest/download/sops-linux-amd64 -o /usr/local/bin/sops
-          chmod +x /usr/local/bin/sops
-
-          # Install kustomize (dynamic version detection)
-          KUSTOMIZE_VERSION=$(curl -s https://api.github.com/repos/kubernetes-sigs/kustomize/releases/latest | jq -r '.tag_name')
-          curl -sSfL "https://github.com/kubernetes-sigs/kustomize/releases/download/${KUSTOMIZE_VERSION}/kustomize_${KUSTOMIZE_VERSION#v}_linux_amd64.tar.gz" \
-            | tar -xz -C /usr/local/bin
-
-          # Install yq
-          curl -sSfL https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 -o /usr/local/bin/yq
-          chmod +x /usr/local/bin/yq
-
-      - name: Decrypt secrets and validate SOPS
+      - name: Install latest sops
         run: |
-          find . -type f -name '*.yaml' | while read -r file; do
-            if grep -q 'sops:' "$file"; then
-              echo "Validating $file"
-              sops -d "$file" >/dev/null
-            fi
+          SOPS_LATEST=$(curl -s https://api.github.com/repos/getsops/sops/releases/latest | jq -r .tag_name)
+          curl -sSL -o sops "https://github.com/getsops/sops/releases/download/${SOPS_LATEST}/sops-${SOPS_LATEST#v}.linux.amd64"
+          chmod +x sops
+          sudo mv sops /usr/local/bin/sops
+
+      - name: Install latest kustomize
+        run: |
+          KUSTOMIZE_LATEST=$(curl -s https://api.github.com/repos/kubernetes-sigs/kustomize/releases/latest | jq -r .tag_name)
+          KUSTOMIZE_URL="https://github.com/kubernetes-sigs/kustomize/releases/download/${KUSTOMIZE_LATEST}/kustomize_${KUSTOMIZE_LATEST#*/}_linux_amd64.tar.gz"
+          curl -sSL -o kustomize.tar.gz "$KUSTOMIZE_URL"
+          tar -xzf kustomize.tar.gz
+          chmod +x kustomize
+          sudo mv kustomize /usr/local/bin/kustomize
+
+      - name: Install latest yq
+        run: |
+          YQ_LATEST=$(curl -s https://api.github.com/repos/mikefarah/yq/releases/latest | jq -r .tag_name)
+          curl -sSL -o yq "https://github.com/mikefarah/yq/releases/download/${YQ_LATEST}/yq_linux_amd64"
+          chmod +x yq
+          sudo mv yq /usr/local/bin/yq
+
+      - name: Validate Kustomize manifests
+        run: |
+          find clusters -name kustomization.yaml -exec dirname {} \; | while read dir; do
+            echo "Validating $dir"
+            kustomize build "$dir" > /dev/null
           done
 
-      - name: Validate Kustomize overlays
+      - name: Validate SOPS decryption
+        env:
+          SOPS_AGE_KEY: ${{ secrets.SOPS_AGE_KEY }}
         run: |
-          for dir in clusters/*/*; do
-            if [ -f "$dir/kustomization.yaml" ]; then
-              echo "Validating kustomization in $dir"
-              kustomize build "$dir" >/dev/null
-            fi
+          find clusters -type f -name '*.yaml' -path '*/secrets/*' | while read secret; do
+            echo "Decrypting $secret"
+            sops -d "$secret" > /dev/null
           done
