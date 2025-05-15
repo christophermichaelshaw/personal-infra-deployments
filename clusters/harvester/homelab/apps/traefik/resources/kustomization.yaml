@@ -1,0 +1,2 @@
+resources:
+  - traefik-values.yaml
