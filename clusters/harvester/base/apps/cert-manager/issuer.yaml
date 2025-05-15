@@ -4,14 +4,14 @@ metadata:
   name: letsencrypt-cloudflare
 spec:
   acme:
-    email: ${CLOUDFLARE_EMAIL}
+    email: CHANGE_ME@example.com
     server: https://acme-v02.api.letsencrypt.org/directory
     privateKeySecretRef:
       name: letsencrypt-cloudflare-account-key
     solvers:
       - dns01:
           cloudflare:
-            email: ${CLOUDFLARE_EMAIL}
+            email: CHANGE_ME@example.com
             apiTokenSecretRef:
               name: cloudflare-api
               key: api-token

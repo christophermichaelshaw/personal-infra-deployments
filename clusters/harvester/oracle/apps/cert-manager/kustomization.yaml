@@ -1,3 +1,7 @@
 resources:
+  - ../../../base/apps/cert-manager
   - helm-release.yaml
   - resources
+
+patchesStrategicMerge:
+  - resources/issuer-patch.yaml

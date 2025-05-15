@@ -1,7 +1,4 @@
-bases:
-  - ../base
 resources:
   - apps/cert-manager
   - apps/traefik
   - secrets
-

@@ -1,0 +1,45 @@
+name: Validate Kustomize and SOPS
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y curl gpg
+          curl -sSfL https://github.com/getsops/sops/releases/latest/download/sops-linux-amd64 -o /usr/local/bin/sops
+          chmod +x /usr/local/bin/sops
+          curl -sSfL https://github.com/kubernetes-sigs/kustomize/releases/latest/download/kustomize_v5.3.0_linux_amd64.tar.gz | tar -xz -C /usr/local/bin
+          curl -sSfL https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 -o /usr/local/bin/yq
+          chmod +x /usr/local/bin/yq
+
+      - name: Set up AGE key
+        run: |
+          echo "${{ secrets.AGE_KEY }}" > /tmp/age.key
+          export SOPS_AGE_KEY_FILE=/tmp/age.key
+
+      - name: Find and decrypt secrets
+        run: |
+          find clusters/harvester -type f -name "*.yaml" | grep "/secrets/" | while read -r secret; do
+            echo "Decrypting $secret"
+            sops -d "$secret" > /dev/null
+          done
+
+      - name: Validate Kustomize manifests
+        run: |
+          find clusters/harvester -type f -name 'kustomization.yaml' | while read -r file; do
+            dir=$(dirname "$file")
+            echo "Validating $dir"
+            kustomize build "$dir" > /dev/null
+          done

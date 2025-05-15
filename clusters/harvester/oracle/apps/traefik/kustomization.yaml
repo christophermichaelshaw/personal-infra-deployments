@@ -1,3 +1,4 @@
 resources:
+  - ../../../base/apps/traefik
   - helm-release.yaml
   - resources
