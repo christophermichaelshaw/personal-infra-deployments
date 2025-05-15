@@ -1,3 +1,2 @@
 resources:
-  - issuer.yaml
   - issuer-patch.yaml
