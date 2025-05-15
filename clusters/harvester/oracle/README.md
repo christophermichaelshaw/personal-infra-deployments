@@ -10,7 +10,8 @@ GitOps-managed manifests for the Oracle Harvester cluster.
 ## 🛠️ Decryption
 ```bash
 sops -d clusters/harvester/oracle/secrets/cloudflare-api.yaml
-
+```
 ## 🧪 Test Manifests
 ```bash
 kustomize build clusters/harvester/oracle
+```
