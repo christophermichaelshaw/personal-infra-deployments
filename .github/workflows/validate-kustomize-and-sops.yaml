@@ -57,6 +57,7 @@ jobs:
         env:
           SOPS_AGE_KEY: ${{ secrets.SOPS_AGE_KEY }}
         run: |
+          export SOPS_AGE_KEY
           find clusters -type f -name '*.yaml' -path '*/secrets/*' | while read secret; do
             echo "Decrypting $secret"
             sops -d "$secret" > /dev/null
