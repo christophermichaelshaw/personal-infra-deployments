@@ -24,14 +24,18 @@ clusters/
 
 Secrets (e.g., Cloudflare API token) are encrypted with Age + SOPS and committed safely to Git.
 
-```bash
+
 # Encrypt
+```bash
 sops -e -i clusters/harvester/homelab/secrets/cloudflare-api.yaml
+```
 
 # Decrypt
+```bash
 sops -d clusters/harvester/homelab/secrets/cloudflare-api.yaml
+```
 
-🛠️ Tooling
+## 🛠️ Tooling
 - SOPS
 - Age
 - kustomize
@@ -41,7 +45,11 @@ sops -d clusters/harvester/homelab/secrets/cloudflare-api.yaml
 ## 🚀 GitOps Workflow
 
 # Render manifests
+```bash
 kustomize build clusters/harvester/homelab
+```
 
 # Apply to cluster
+```bash
 kubectl apply -k clusters/harvester/homelab
+```
