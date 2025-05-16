@@ -44,12 +44,12 @@ sops -d clusters/harvester/homelab/secrets/cloudflare-api.yaml
 
 ## 🚀 GitOps Workflow
 
-# Render manifests
+### Render manifests
 ```bash
 kustomize build clusters/harvester/homelab
 ```
 
-# Apply to cluster
+### Apply to cluster
 ```bash
 kubectl apply -k clusters/harvester/homelab
 ```
