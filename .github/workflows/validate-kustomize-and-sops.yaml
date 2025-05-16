@@ -52,7 +52,6 @@ jobs:
             echo "Validating $dir"
             kustomize build "$dir" > /dev/null
           done
-          
       - name: Validate SOPS decryption
         env:
           SOPS_AGE_KEY: ${{ secrets.SOPS_AGE_KEY }}
@@ -65,7 +64,7 @@ jobs:
           DECRYPTED=0
           SKIPPED=0
 
-          find clusters -type f -name '*.yaml' -path '*/secrets/*' | while read secret; do
+          while IFS= read -r secret; do
             echo "📄 Checking: $secret"
             if grep -q '^sops:' "$secret"; then
               echo "🔓 Decrypting: $secret"
@@ -80,20 +79,20 @@ jobs:
               echo "⏭️  Skipped (not encrypted): $secret"
               ((SKIPPED++))
             fi
-          done
-
-          echo "🧹 Cleaning up key material..."
-          shred -u age-key.txt
+          done < <(find clusters -type f -name '*.yaml' -path '*/secrets/*')
 
           echo ""
           echo "📊 Decryption summary:"
           echo "   Decrypted files : $DECRYPTED"
           echo "   Skipped files   : $SKIPPED"
 
+          echo "🧹 Cleaning up key material..."
+          shred -u age-key.txt
+
           if [[ "$FAILURE" -ne 0 ]]; then
             echo "🚨 One or more files failed to decrypt."
             exit 1
           else
             echo "✅ All encrypted secrets decrypted successfully."
+            exit 0
           fi
-
