@@ -25,12 +25,12 @@ clusters/
 Secrets (e.g., Cloudflare API token) are encrypted with Age + SOPS and committed safely to Git.
 
 
-# Encrypt
+### Encrypt
 ```bash
 sops -e -i clusters/harvester/homelab/secrets/cloudflare-api.yaml
 ```
 
-# Decrypt
+### Decrypt
 ```bash
 sops -d clusters/harvester/homelab/secrets/cloudflare-api.yaml
 ```
