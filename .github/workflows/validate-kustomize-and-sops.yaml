@@ -52,7 +52,9 @@ jobs:
             echo "Validating $dir"
             kustomize build "$dir" > /dev/null
           done
+
       - name: Validate SOPS decryption
+        shell: bash
         env:
           SOPS_AGE_KEY: ${{ secrets.SOPS_AGE_KEY }}
         run: |
@@ -70,14 +72,14 @@ jobs:
               echo "🔓 Decrypting: $secret"
               if sops -d "$secret" > /dev/null; then
                 echo "✅ Success: $secret"
-                ((DECRYPTED++))
+                DECRYPTED=$((DECRYPTED + 1))
               else
                 echo "❌ Failed: $secret"
                 FAILURE=1
               fi
             else
               echo "⏭️  Skipped (not encrypted): $secret"
-              ((SKIPPED++))
+              SKIPPED=$((SKIPPED + 1))
             fi
           done < <(find clusters -type f -name '*.yaml' -path '*/secrets/*')
 
@@ -88,7 +90,7 @@ jobs:
           echo "   FAILURE status  : $FAILURE"
 
           echo "🧹 Cleaning up key material..."
-          shred -u age-key.txt
+          shred -u age-key.txt || echo "⚠️ Failed to shred key; continuing"
 
           if [[ "$FAILURE" -ne 0 ]]; then
             echo "🚨 One or more files failed to decrypt."
@@ -96,4 +98,3 @@ jobs:
           fi
 
           echo "✅ All encrypted secrets decrypted successfully."
-          exit 0
