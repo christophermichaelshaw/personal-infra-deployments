@@ -1,0 +1,17 @@
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: letsencrypt-cloudflare-homelab
+spec:
+  acme:
+    email: christopher.michael.shaw@gmail.com
+    server: https://acme-v02.api.letsencrypt.org/directory
+    privateKeySecretRef:
+      name: letsencrypt-cloudflare-account-key
+    solvers:
+      - dns01:
+          cloudflare:
+            email: christopher.michael.shaw@gmail.com
+            apiTokenSecretRef:
+              name: cloudflare-api
+              key: api-token

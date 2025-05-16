@@ -1,6 +1,6 @@
 configMapGenerator:
-  - name: traefik-values
+  - name: traefik-values-oracle
     files:
-      - values.yaml=traefik-values.yaml
+      - values.yaml=traefik-values-oracle.yaml
 generatorOptions:
   disableNameSuffixHash: true

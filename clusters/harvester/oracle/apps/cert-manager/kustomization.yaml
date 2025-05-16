@@ -1,6 +1,3 @@
 resources:
-  - ../../../base/apps/cert-manager
+  - resources/issuer.yaml
   - helm-release.yaml
-
-patches:
-  - path: resources/issuer-patch.yaml

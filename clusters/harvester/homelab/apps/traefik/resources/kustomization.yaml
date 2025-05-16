@@ -1,6 +1,6 @@
 configMapGenerator:
-  - name: traefik-values
+  - name: traefik-values-homelab
     files:
-      - values.yaml=traefik-values.yaml
+      - values.yaml=traefik-values-homelab.yaml
 generatorOptions:
   disableNameSuffixHash: true
