@@ -85,6 +85,7 @@ jobs:
           echo "📊 Decryption summary:"
           echo "   Decrypted files : $DECRYPTED"
           echo "   Skipped files   : $SKIPPED"
+          echo "   FAILURE status  : $FAILURE"
 
           echo "🧹 Cleaning up key material..."
           shred -u age-key.txt
@@ -92,7 +93,7 @@ jobs:
           if [[ "$FAILURE" -ne 0 ]]; then
             echo "🚨 One or more files failed to decrypt."
             exit 1
-          else
-            echo "✅ All encrypted secrets decrypted successfully."
-            exit 0
           fi
+
+          echo "✅ All encrypted secrets decrypted successfully."
+          exit 0
