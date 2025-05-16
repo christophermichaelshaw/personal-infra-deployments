@@ -23,7 +23,10 @@ jobs:
       - name: Install latest sops
         run: |
           SOPS_LATEST=$(curl -s https://api.github.com/repos/getsops/sops/releases/latest | jq -r .tag_name)
-          curl -sSL -o sops "https://github.com/getsops/sops/releases/download/${SOPS_LATEST}/sops-${SOPS_LATEST#v}.linux.amd64"
+          SOPS_URL="https://github.com/getsops/sops/releases/download/${SOPS_LATEST}/sops-${SOPS_LATEST#v}.linux.amd64"
+          echo "Downloading SOPS from $SOPS_URL"
+          curl -sSfL "$SOPS_URL" -o sops || { echo "❌ Failed to download SOPS"; exit 1; }
+          file sops  # Debug: confirm it's a binary
           chmod +x sops
           sudo mv sops /usr/local/bin/sops
 
