@@ -1,3 +1,16 @@
+namespace: kube-system
+
+configMapGenerator:
+  - name: traefik-values-homelab
+    files:
+      - values.yaml=resources/traefik-values-homelab.yaml
+
+generatorOptions:
+  disableNameSuffixHash: true
+
+resources:
+  - helm-release.yaml
+
 resources:
   - helm-release.yaml
   - resources
