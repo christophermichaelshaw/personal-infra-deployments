@@ -1,0 +1,48 @@
+targets:
+  - name: homelab-target
+    clusterSelector:
+      matchLabels:
+        Env: homelab
+    ignore:
+      - apiVersion: apps/v1
+        kind: Deployment
+        name: harvester
+      - apiVersion: apps/v1
+        kind: Deployment
+        name: harvester-webhook
+      - apiVersion: apps/v1
+        kind: Deployment
+        name: harvester-node-manager-webhook
+      - apiVersion: apps/v1
+        kind: Deployment
+        name: harvester-network-controller-manager
+      - apiVersion: apps/v1
+        kind: DaemonSet
+        name: harvester-node-disk-manager
+      - apiVersion: apps/v1
+        kind: DaemonSet
+        name: harvester-networkfs-manager
+      - apiVersion: apps/v1
+        kind: DaemonSet
+        name: harvester-whereabouts
+      - apiVersion: apps/v1
+        kind: DaemonSet
+        name: longhorn-manager
+      - apiVersion: apps/v1
+        kind: DaemonSet
+        name: longhorn-loop-device-cleaner
+      - apiVersion: apps/v1
+        kind: DaemonSet
+        name: harvester-network-controller
+      - apiVersion: apps/v1
+        kind: Deployment
+        name: harvester-node-manager
+      - apiVersion: apps/v1
+        kind: Deployment
+        name: harvester-load-balancer
+      - apiVersion: apps/v1
+        kind: Deployment
+        name: harvester-load-balancer-webhook
+      - apiVersion: kubevirt.io/v1
+        kind: KubeVirt
+        name: kubevirt
