@@ -50,12 +50,20 @@ jobs:
         run: |
           find clusters -name kustomization.yaml -exec dirname {} \; | while read dir; do
             echo "Validating $dir"
-            if ! grep -q 'fleet.cattle.io' "$dir"/*.yaml 2>/dev/null; then
-              kustomize build "$dir" > /dev/null || { echo "Failed to validate $dir"; exit 1; }
-            else
-              echo "⚠️ Skipped $dir (contains non-Kustomize files)"
+            # Skip directories with fleet.yaml or GitRepo definitions
+            if find "$dir" -maxdepth 1 -type f -name "*.yaml" | xargs grep -q "fleet.cattle.io"; then
+              echo "⚠️ Skipped $dir (contains Fleet manifests)"
+              continue
             fi
+            kustomize build "$dir" > /dev/null || { echo "❌ Failed to validate $dir"; exit 1; }
           done
+
+      - name: Validate Fleet CRDs
+        run: |
+          echo "🔍 Validating fleet.yaml..."
+          kubectl apply --dry-run=client -f clusters/harvester/fleet-targets/homelab/fleet.yaml || {
+            echo "❌ fleet.yaml is invalid"; exit 1;
+          }
 
       - name: Validate SOPS decryption
         shell: bash
