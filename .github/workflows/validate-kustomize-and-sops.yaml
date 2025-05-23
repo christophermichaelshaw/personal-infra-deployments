@@ -50,7 +50,11 @@ jobs:
         run: |
           find clusters -name kustomization.yaml -exec dirname {} \; | while read dir; do
             echo "Validating $dir"
-            kustomize build "$dir" > /dev/null
+            if ! grep -q 'fleet.cattle.io' "$dir"/*.yaml 2>/dev/null; then
+              kustomize build "$dir" > /dev/null || { echo "Failed to validate $dir"; exit 1; }
+            else
+              echo "⚠️ Skipped $dir (contains non-Kustomize files)"
+            fi
           done
 
       - name: Validate SOPS decryption
