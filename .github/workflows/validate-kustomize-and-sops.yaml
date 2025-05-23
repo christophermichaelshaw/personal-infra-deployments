@@ -58,12 +58,27 @@ jobs:
             kustomize build "$dir" > /dev/null || { echo "❌ Failed to validate $dir"; exit 1; }
           done
 
-      - name: Validate Fleet CRDs
+      - name: Validate all fleet.yaml files
         run: |
-          echo "🔍 Validating fleet.yaml..."
-          kubectl apply --dry-run=client -f clusters/harvester/fleet-targets/homelab/fleet.yaml || {
-            echo "❌ fleet.yaml is invalid"; exit 1;
-          }
+          echo "🔍 Validating all fleet.yaml files..."
+          FAILURE=0
+          while IFS= read -r file; do
+            echo "🧪 Checking: $file"
+            if yq e '.' "$file" > /dev/null 2>&1; then
+              echo "✅ Valid YAML: $file"
+            else
+              echo "❌ Invalid YAML: $file"
+              FAILURE=1
+            fi
+          done < <(find clusters -type f -name 'fleet.yaml')
+
+          if [[ "$FAILURE" -ne 0 ]]; then
+            echo "🚨 One or more fleet.yaml files are invalid."
+            exit 1
+          fi
+
+          echo "✅ All fleet.yaml files are valid YAML."
+
 
       - name: Validate SOPS decryption
         shell: bash
