@@ -249,6 +249,12 @@ volumes:
     driver: local
   geoip:
     driver: local
+  media:
+    driver: local
+  custom-templates:
+    driver: local
+  certs:
+    driver: local
 
 secrets:
   AUTHENTIK_POSTGRESQL__USER:
