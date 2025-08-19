@@ -1,0 +1,254 @@
+services:
+  postgresql:
+    image: docker.io/library/postgres:16-alpine
+    deploy:
+      placement:
+        constraints:
+          - node.role == ${AUTHENTIK_PG_DOCKER_NODE_ROLE:-manager}
+#          - node.hostname== ${AUTHENTIK_PG_DOCKER_NODE_HOSTNAME}
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -d $${POSTGRES_DB} -U $${POSTGRES_USER}"]
+      start_period: 20s
+      interval: 30s
+      retries: 5
+      timeout: 5s
+    ports:
+      - 5432:5432
+    volumes:
+      - ${AUTHENTIK_PG_VOLUME}:/var/lib/postgresql/data
+    environment:
+      POSTGRES_PASSWORD: /run/secrets/AUTHENTIK_POSTGRESQL__PASSWORD
+      POSTGRES_USER: /run/secrets/AUTHENTIK_POSTGRESQL__USER
+      POSTGRES_DB: /run/secrets/AUTHENTIK_POSTGRESQL__NAME
+      #TZ: America/Los_Angeles
+    secrets:
+      - AUTHENTIK_POSTGRESQL__USER
+      - AUTHENTIK_POSTGRESQL__NAME
+      - AUTHENTIK_POSTGRESQL__PASSWORD
+    labels:
+      #wud.watch: "true"
+      #wud.tag.include: "latest"
+      #wud.tag.include: '^(0|[1-9]\d*)-alpine$$'
+      #wud.watch.digest: "true"
+      traefik.enable: ${AUTHENTIK_TRAEFIK_POSTGRESQL_ENABLE}
+      traefik.tcp.routers.authentik_postgres.rule: ${AUTHENTIK_TRAEFIK_TCP_ROUTERS_AUTHENTIK_POSTGRES_RULE} 
+      traefik.tcp.services.authentik_postgres.loadbalancer.server.port: ${AUTHENTIK_TRAEFIK_TCP_SERVICES_AUTHENTIK_POSTGRES_LOADBALANCER_SERVER_PORT}
+      traefik.tcp.routers.authentik_postgres.entrypoints: ${AUTHENTIK_TRAEFIK_TCP_ROUTERS_AUTHENTIK_POSTGRES_ENTRYPOINTS}
+      traefik.tcp.routers.authentik_postgres.tls: ${AUTHENTIK_TRAEFIK_TCP_ROUTERS_AUTHENTIK_POSTGRES_TLS}
+    networks:
+#      - proxy
+      - authentik_default
+
+
+  redis:
+    image: docker.io/library/redis:alpine
+    deploy:
+      placement:
+        constraints:
+          - node.role == manager
+    command: --save 60 1 --loglevel verbose --requirepass "${AUTHENTIK_REDIS__PASSWORD}"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli -a '${AUTHENTIK_REDIS__PASSWORD}' ping | grep PONG"]
+      start_period: 20s
+      interval: 30s
+      retries: 5
+      timeout: 3s
+    ports:
+      - 6379:6379
+    volumes:
+      - ${AUTHENTIK_REDIS__VOLUME}:/data
+#    labels:
+#      - wud.watch=true
+#      - wud.tag.include=latest
+#      - wud.watch.digest=true
+    networks:
+#      - proxy
+      - authentik_default
+  server:
+    image: ${AUTHENTIK_IMAGE:-ghcr.io/goauthentik/server}:${AUTHENTIK_TAG:-2025.6.4}
+    deploy:
+      placement:
+        constraints:
+          - node.role == manager
+    restart: unless-stopped
+    command: server
+    environment:
+      AUTHENTIK_REDIS__HOST: ${AUTHENTIK_REDIS__HOST}
+      AUTHENTIK_REDIS__PORT: ${AUTHENTIK_REDIS__PORT}
+      AUTHENTIK_REDIS__PASSWORD: /run/secrets/AUTHENTIK_REDIS__PASSWORD
+      AUTHENTIK_REDIS__TLS: ${AUTHENTIK_REDIS__TLS}
+      AUTHENTIK_POSTGRESQL__HOST: postgresql
+      AUTHENTIK_POSTGRESQL__USER: /run/secrets/AUTHENTIK_POSTGRESQL__USER
+      AUTHENTIK_POSTGRESQL__NAME: /run/secrets/AUTHENTIK_POSTGRESQL__NAME
+      AUTHENTIK_POSTGRESQL__PASSWORD: /run/secrets/AUTHENTIK_POSTGRESQL__PASSWORD
+      AUTHENTIK_SECRET_KEY: /run/secrets/AUTHENTIK_SECRET_KEY
+      # SMTP Host Emails are sent to
+      AUTHENTIK_EMAIL__HOST: /run/secrets/AUTHENTIK_EMAIL__HOST
+      AUTHENTIK_EMAIL__PORT: /run/secrets/AUTHENTIK_EMAIL__PORT
+      # Optionally authenticate (don't add quotation marks to your password)
+      AUTHENTIK_EMAIL__USERNAME: /run/secrets/AUTHENTIK_EMAIL__USERNAME
+      AUTHENTIK_EMAIL__PASSWORD: /run/secrets/AUTHENTIK_EMAIL__PASSWORD
+      # Use StartTLS
+      AUTHENTIK_EMAIL__USE_TLS: ${AUTHENTIK_EMAIL__USE_TLS}
+      # Use SSL
+      AUTHENTIK_EMAIL__USE_SSL: ${AUTHENTIK_EMAIL__USE_SSL}
+      AUTHENTIK_EMAIL__TIMEOUT: ${AUTHENTIK_EMAIL__TIMEOUT}
+      # Email address authentik will send from, should have a correct @domain
+      AUTHENTIK_EMAIL__FROM: /run/secrets/AUTHENTIK_EMAIL__FROM
+      #TZ: America/Los_Angeles
+      AUTHENTIK_LOG_LEVEL: TRACE
+    secrets:
+      - AUTHENTIK_REDIS__PASSWORD
+      - AUTHENTIK_POSTGRESQL__USER
+      - AUTHENTIK_POSTGRESQL__NAME
+      - AUTHENTIK_POSTGRESQL__PASSWORD
+      - AUTHENTIK_EMAIL__FROM
+      - AUTHENTIK_EMAIL__HOST
+      - AUTHENTIK_EMAIL__PASSWORD
+      - AUTHENTIK_EMAIL__PORT
+      - AUTHENTIK_EMAIL__USERNAME
+      - AUTHENTIK_SECRET_KEY
+    volumes:
+      - ${AUTHENTIK_SERVER_VOLUME_MEDIA}:/media
+      - ${AUTHENTIK_SERVER_VOLUME_CUSTOM-TEMPLATES}:/templates
+      - ${AUTHENTIK_GEOIPUPDATE_VOLUME}:/geoip
+    ports:
+#      - "${AUTHENTIK_PORT_HTTP:-9000}:9000"
+#      - "${AUTHENTIK_PORT_HTTPS:-9443}:9443"
+#      - 84:9000
+#      - 8484:9443
+    labels:
+      - traefik.enable=${AUTHENTIK_TRAEFIK_SERVER_ENABLE:-true}"
+      - traefik.docker.network={AUTHENTIK_TRAEFIK_SERVER_DOCKER_NETWORK:-proxy}
+      - "traefik.http.routers.authentik.priority=1"
+#      - "traefik.http.routers.authentik-outpost.priority=3"
+      ## Authentik Web Interface
+      - traefik.http.routers.authentik.rule=Host(`authentik.${AUTHENTIK_DOMAIN}`) || HostRegexp(`{subdomain:[A-Za-z0-9](?:[A-Za-z0-9\\-]{0,61}[A-Za-z0-9])?}.managemycloudfor.me`) && PathPrefix(`/outpost.goauthentik.io/`)"
+      - traefik.http.routers.authentik.entrypoints=${AUTHENTIK_TRAEFIK_HTTP_ROUTERS_AUTHENTIK_ENTRYPOINTS:-https}"
+      - traefik.http.routers.authentik.tls=${AUTHENTIK_TRAEFIK_HTTP_ROUTERS_AUTHENTIK_TLS:-true}"
+      - traefik.http.routers.authentik.tls.certresolver=${AUTHENTIK_TRAEFIK_HTTP_ROUTERS_AUTHENTIK_TLS_CERTRESOLVER}
+      - traefik.http.routers.authentik.service=${AUTHENTIK_TRAEFIK_HTTP_ROUTERS_AUTHENTIK_SERVICE:-authentik}"
+      - traefik.http.services.authentik.loadbalancer.server.port=${AUTHENTIK_TRAEFIK_HTTP_SERVICES_AUTHENTIK_LOADBALANCER_SERVER_PORT:-9000}"
+      - traefik.http.routers.authentik.middlewares=${AUTHENTIK_TRAEFIK_HTTP_ROUTERS_AUTHENTIK_MIDDLEWARES}
+      ## What's Up Docker Tags
+#      - "wud.watch=true"
+#      - "wud.tag.include=latest"
+#      - "wud.watch.digest=true"
+    networks:
+#      - proxy
+      - authentik_default
+    
+  worker:
+    image: ${AUTHENTIK_IMAGE:-ghcr.io/goauthentik/server}:${AUTHENTIK_TAG:-2025.6.4}
+    #image: ghcr.io/goauthentik/server
+    deploy:
+      placement:
+        constraints:
+          - node.role == manager
+    restart: unless-stopped
+    command: worker
+    environment:
+      AUTHENTIK_REDIS__HOST: ${AUTHENTIK_REDIS__HOST}
+      AUTHENTIK_REDIS__PORT: ${AUTHENTIK_REDIS__PORT}
+      AUTHENTIK_REDIS__PASSWORD: /run/secrets/AUTHENTIK_REDIS__PASSWORD
+      AUTHENTIK_REDIS__TLS: ${AUTHENTIK_REDIS__TLS}
+      AUTHENTIK_POSTGRESQL__HOST: /run/secrets/AUTHENTIK_POSTGRESQL__HOST
+      AUTHENTIK_POSTGRESQL__USER: /run/secrets/AUTHENTIK_POSTGRESQL__USER
+      AUTHENTIK_POSTGRESQL__NAME: /run/secrets/AUTHENTIK_POSTGRESQL__NAME
+      AUTHENTIK_POSTGRESQL__PASSWORD: /run/secrets/AUTHENTIK_POSTGRESQL__PASSWORD
+      AUTHENTIK_SECRET_KEY: /run/secrets/AUTHENTIK_SECRET_KEY
+      # SMTP Host Emails are sent to
+      AUTHENTIK_EMAIL__HOST: /run/secrets/AUTHENTIK_EMAIL__HOST
+      AUTHENTIK_EMAIL__PORT: /run/secrets/AUTHENTIK_EMAIL__PORT
+      # Optionally authenticate (don't add quotation marks to your password)
+      AUTHENTIK_EMAIL__USERNAME: /run/secrets/AUTHENTIK_EMAIL__USERNAME
+      AUTHENTIK_EMAIL__PASSWORD: /run/secrets/AUTHENTIK_EMAIL__PASSWORD
+      # Use StartTLS
+      AUTHENTIK_EMAIL__USE_TLS: ${AUTHENTIK_EMAIL__USE_TLS}
+      # Use SSL
+      AUTHENTIK_EMAIL__USE_SSL: ${AUTHENTIK_EMAIL__USE_SSL}
+      AUTHENTIK_EMAIL__TIMEOUT: ${AUTHENTIK_EMAIL__TIMEOUT}
+      # Email address authentik will send from, should have a correct @domain
+      AUTHENTIK_EMAIL__FROM: /run/secrets/AUTHENTIK_EMAIL__FROM
+      # Disable Startup Analytics & Error Reporting
+      AUTHENTIK_DISABLE_STARTUP_ANALYTICS: "true"
+      AUTHENTIK_ERROR_REPORTING__ENABLED: "false"
+      # Leave Startup Update Checking Enabled
+      AUTHENTIK_DISABLE_UPDATE_CHECK: "false"
+    secrets:
+      - AUTHENTIK_REDIS__PASSWORD
+      - AUTHENTIK_POSTGRESQL__USER
+      - AUTHENTIK_POSTGRESQL__NAME
+      - AUTHENTIK_POSTGRESQL__PASSWORD
+      - AUTHENTIK_EMAIL__FROM
+      - AUTHENTIK_EMAIL__HOST
+      - AUTHENTIK_EMAIL__PASSWORD
+      - AUTHENTIK_EMAIL__PORT
+      - AUTHENTIK_EMAIL__USERNAME
+      - AUTHENTIK_SECRET_KEY
+    user: root
+#    labels:
+#      - wud.watch=true
+#      - wud.tag.include=latest
+#      - wud.watch.digest=true
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ${AUTHENTIK_WORKER_VOLUME_MEDIA}:/media
+      - ${AUTHENTIK_WORKER_VOLUME_CERTS}:/certs
+      - ${AUTHENTIK_WORKER_VOLUME_CUSTOM-TEMPLATES}:/templates
+      - ${AUTHENTIK_GEOIPUPDATE_VOLUME}:/geoip
+    networks:
+#      - proxy
+      - authentik_default
+  geoipupdate:
+    image: "maxmindinc/geoipupdate:latest"
+    deploy:
+      placement:
+        constraints:
+          - node.role == manager
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - ${AUTHENTIK_GEOIPUPDATE_VOLUME}:/usr/share/GeoIP
+    environment:
+      GEOIPUPDATE_EDITION_IDS: "GeoLite2-City"
+      GEOIPUPDATE_FREQUENCY: "8"
+      GEOIPUPDATE_ACCOUNT_ID: /run/secrets/AUTHENTIK_GEOIPUPDATE_ACCOUNT_ID
+      GEOIPUPDATE_LICENSE_KEY: /run/secrets/AUTHENTIK_GEOIPUPDATE_LICENSE_KEY
+      #TZ: America/Los_Angeles
+    secrets:
+      - AUTHENTIK_GEOIPUPDATE_ACCOUNT_ID
+      - AUTHENTIK_GEOIPUPDATE_LICENSE_KEY
+#    labels:
+#      - wud.watch=true
+#      - wud.tag.include=latest
+#      - wud.watch.digest=true
+  whoami:
+      image: containous/whoami
+      labels:
+          traefik.enable: ${AUTHENTIK_TRAEFIK_WHOAMI_ENABLE:-true}
+          traefik.http.routers.whoami.rule: ${AUTHENTIK_TRAEFIK_WHOAMI_HTTP_ROUTERS_WHOAMI_RULE}
+          traefik.http.routers.whoami.middlewares: ${AUTHENTIK_TRAEFIK_WHOAMI_HTTP_ROUTERS_WHOAMI_MIDDLEWARES}
+          traefik.http.routers.whoami.entrypoints: ${AUTHENTIK_TRAEFIK_WHOAMI_HTTP_ROUTERS_WHOAMI_ENTRYPOINTS:-http}
+          traefik.http.routers.whoami.tls: ${AUTHENTIK_TRAEFIK_WHOAMI_HTTP_ROUTERS_WHOAMI_TLS:-false}
+          traefik.http.routers.whoami.service: ${AUTHENTIK_TRAEFIK_WHOAMI_HTTP_ROUTERS_WHOAMI_SERVICE:-whoami}
+          traefik.http.services.whoami.loadbalancer.server.port: ${AUTHENTIK_TRAEFIK_WHOAMI_HTTP_SERVICES_WHOAMI_LOADBALANCER_SERVER_PORT:-80}}
+      restart: unless-stopped
+      networks:
+          - proxy
+          - authentik_default
+
+networks:
+  proxy:
+    external: true
+  authentik_default:
+    external: false
+
+volumes:
+  database:
+    driver: local
+  redis:
+    driver: local
+  geoip:
+    driver: local
