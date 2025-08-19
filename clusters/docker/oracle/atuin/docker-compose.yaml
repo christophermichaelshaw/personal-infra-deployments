@@ -1,0 +1,45 @@
+services:
+  atuin:
+    user: "0:0"
+    restart: always
+    image: ghcr.io/atuinsh/atuin
+    command: server start
+    volumes:
+      - ${ATUIN_CONFIG_VOLUME}:/config
+    links:
+      - postgresql:db
+#    ports:
+#      - 8888:8888
+    environment:
+      ATUIN_HOST: ${ATUIN_HOST}
+      ATUIN_OPEN_REGISTRATION: ${ATUIN_OPEN_REGISTRATION}
+      ATUIN_DB_URI: postgres://${ATUIN_DB_USERNAME}:${ATUIN_DB_PASSWORD}@postgresql/atuin
+      RUST_LOG: info,atuin_server=debug
+    labels:
+      - traefik.enable=${TRAEFIK_ENABLE}
+      - traefik.http.routers.atuin.rule=${TRAEFIK_HTTP_ROUTERS_ATUIN_RULE}
+      - traefik.http.routers.atuin.entrypoints=${TRAEFIK_HTTP_ROUTERS_ATUIN_ENTRYPOINTS}
+      - traefik.http.routers.atuin.tls=${TRAEFIK_HTTP_ROUTERS_ATUIN_TLS}
+      - traefik.http.routers.atuin.tls.certresolver=${TRAEFIK_HTTP_ROUTERS_ATUIN_TLS_CERTRESOLVER}
+      - traefik.http.routers.atuin.service=${TRAEFIK_HTTP_ROUTERS_ATUIN_SERVICE}
+      - traefik.http.services.atuin.loadbalancer.server.port=${TRAEFIK_HTTP_SERVICES_ATUIN_LOADBALANCER_SERVER_PORT}
+    networks:
+      atuin:
+      proxy:
+  postgresql:
+#    user: "0:0"
+    image: postgres:14
+    restart: unless-stopped
+    volumes:
+      - ${ATUIN_DATABASE_VOLUME}:/var/lib/postgresql/data/
+    environment:
+      POSTGRES_USER: ${ATUIN_DB_USERNAME}
+      POSTGRES_PASSWORD: ${ATUIN_DB_PASSWORD}
+      POSTGRES_DB: ${ATUIN_DB_NAME}
+    networks:
+      atuin:
+
+networks:
+  atuin:
+  proxy:
+    external: true
