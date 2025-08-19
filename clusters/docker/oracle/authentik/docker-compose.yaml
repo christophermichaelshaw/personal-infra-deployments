@@ -39,8 +39,6 @@ services:
     networks:
 #      - proxy
       - authentik_default
-
-
   redis:
     image: docker.io/library/redis:alpine
     deploy:
@@ -114,7 +112,7 @@ services:
       - ${AUTHENTIK_SERVER_VOLUME_MEDIA}:/media
       - ${AUTHENTIK_SERVER_VOLUME_CUSTOM-TEMPLATES}:/templates
       - ${AUTHENTIK_GEOIPUPDATE_VOLUME}:/geoip
-    ports:
+#    ports:
 #      - "${AUTHENTIK_PORT_HTTP:-9000}:9000"
 #      - "${AUTHENTIK_PORT_HTTPS:-9443}:9443"
 #      - 84:9000
