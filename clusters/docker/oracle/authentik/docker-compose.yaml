@@ -110,7 +110,7 @@ services:
       - AUTHENTIK_SECRET_KEY
     volumes:
       - ${AUTHENTIK_SERVER_VOLUME_MEDIA}:/media
-      - ${AUTHENTIK_SERVER_VOLUME_CUSTOM-TEMPLATES}:/templates
+      - ${AUTHENTIK_SERVER_VOLUME_CUSTOM_TEMPLATES}:/templates
       - ${AUTHENTIK_GEOIPUPDATE_VOLUME}:/geoip
 #    ports:
 #      - "${AUTHENTIK_PORT_HTTP:-9000}:9000"
@@ -194,7 +194,7 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
       - ${AUTHENTIK_WORKER_VOLUME_MEDIA}:/media
       - ${AUTHENTIK_WORKER_VOLUME_CERTS}:/certs
-      - ${AUTHENTIK_WORKER_VOLUME_CUSTOM-TEMPLATES}:/templates
+      - ${AUTHENTIK_WORKER_VOLUME_CUSTOM_TEMPLATES}:/templates
       - ${AUTHENTIK_GEOIPUPDATE_VOLUME}:/geoip
     networks:
 #      - proxy
