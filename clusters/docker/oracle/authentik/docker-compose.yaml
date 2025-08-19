@@ -252,26 +252,26 @@ volumes:
 
 secrets:
   AUTHENTIK_POSTGRESQL__USER:
-    file: ./secrets/AUTHENTIK_POSTGRESQL__USER
+    external: true
   AUTHENTIK_POSTGRESQL__NAME:
-    file: ./secrets/AUTHENTIK_POSTGRESQL__NAME
+    external: true
   AUTHENTIK_POSTGRESQL__PASSWORD:
-    file: ./secrets/AUTHENTIK_POSTGRESQL__PASSWORD
+    external: true
   AUTHENTIK_REDIS__PASSWORD:
-    file: ./secrets/AUTHENTIK_REDIS__PASSWORD
+    external: true
   AUTHENTIK_SECRET_KEY:
-    file: ./secrets/AUTHENTIK_SECRET_KEY
-  AUTHENTIK_EMAIL__HOST:
-    file: ./secrets/AUTHENTIK_EMAIL__HOST
-  AUTHENTIK_EMAIL__PORT:
-    file: ./secrets/AUTHENTIK_EMAIL__PORT
-  AUTHENTIK_EMAIL__USERNAME:
-    file: ./secrets/AUTHENTIK_EMAIL__USERNAME
-  AUTHENTIK_EMAIL__PASSWORD:
-    file: ./secrets/AUTHENTIK_EMAIL__PASSWORD
+    external: true
   AUTHENTIK_EMAIL__FROM:
-    file: ./secrets/AUTHENTIK_EMAIL__FROM
+    external: true
+  AUTHENTIK_EMAIL__HOST:
+    external: true
+  AUTHENTIK_EMAIL__PASSWORD:
+    external: true
+  AUTHENTIK_EMAIL__PORT:
+    external: true
+  AUTHENTIK_EMAIL__USERNAME:
+    external: true
   AUTHENTIK_GEOIPUPDATE_ACCOUNT_ID:
-    file: ./secrets/AUTHENTIK_GEOIPUPDATE_ACCOUNT_ID
+    external: true
   AUTHENTIK_GEOIPUPDATE_LICENSE_KEY:
-    file: ./secrets/AUTHENTIK_GEOIPUPDATE_LICENSE_KEY
+    external: true
