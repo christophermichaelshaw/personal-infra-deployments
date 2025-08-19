@@ -137,7 +137,6 @@ services:
     networks:
 #      - proxy
       - authentik_default
-    
   worker:
     image: ${AUTHENTIK_IMAGE:-ghcr.io/goauthentik/server}:${AUTHENTIK_TAG:-2025.6.4}
     #image: ghcr.io/goauthentik/server
@@ -250,3 +249,29 @@ volumes:
     driver: local
   geoip:
     driver: local
+
+secrets:
+  AUTHENTIK_POSTGRESQL__USER:
+    file: ./secrets/AUTHENTIK_POSTGRESQL__USER
+  AUTHENTIK_POSTGRESQL__NAME:
+    file: ./secrets/AUTHENTIK_POSTGRESQL__NAME
+  AUTHENTIK_POSTGRESQL__PASSWORD:
+    file: ./secrets/AUTHENTIK_POSTGRESQL__PASSWORD
+  AUTHENTIK_REDIS__PASSWORD:
+    file: ./secrets/AUTHENTIK_REDIS__PASSWORD
+  AUTHENTIK_SECRET_KEY:
+    file: ./secrets/AUTHENTIK_SECRET_KEY
+  AUTHENTIK_EMAIL__HOST:
+    file: ./secrets/AUTHENTIK_EMAIL__HOST
+  AUTHENTIK_EMAIL__PORT:
+    file: ./secrets/AUTHENTIK_EMAIL__PORT
+  AUTHENTIK_EMAIL__USERNAME:
+    file: ./secrets/AUTHENTIK_EMAIL__USERNAME
+  AUTHENTIK_EMAIL__PASSWORD:
+    file: ./secrets/AUTHENTIK_EMAIL__PASSWORD
+  AUTHENTIK_EMAIL__FROM:
+    file: ./secrets/AUTHENTIK_EMAIL__FROM
+  AUTHENTIK_GEOIPUPDATE_ACCOUNT_ID:
+    file: ./secrets/AUTHENTIK_GEOIPUPDATE_ACCOUNT_ID
+  AUTHENTIK_GEOIPUPDATE_LICENSE_KEY:
+    file: ./secrets/AUTHENTIK_GEOIPUPDATE_LICENSE_KEY
