@@ -10,7 +10,7 @@ services:
         - proxy
         - containerd
     environment:
-        - TUNNEL_TOKEN=${TUNNEL_TOKEN}
+        - TUNNEL_TOKEN=/run/secrets/CONTAINDERD_TUNNEL_TOKEN
     secrets:
       - CONTAINDERD_TUNNEL_TOKEN
 
