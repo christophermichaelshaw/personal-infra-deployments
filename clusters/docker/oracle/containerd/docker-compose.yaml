@@ -11,8 +11,14 @@ services:
         - containerd
     environment:
         - TUNNEL_TOKEN=${TUNNEL_TOKEN}
+    secrets:
+      - CONTAINDERD_TUNNEL_TOKEN
 
 networks:
     proxy:
       external: true
     containerd:
+
+secrets:
+  CONTAINDERD_TUNNEL_TOKEN:
+    external: true
