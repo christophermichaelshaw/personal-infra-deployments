@@ -10,9 +10,9 @@ services:
         - proxy
         - containerd
     environment:
-        - TUNNEL_TOKEN=/run/secrets/CONTAINDERD_TUNNEL_TOKEN
+        - TUNNEL_TOKEN=/run/secrets/CONTAINERD_TUNNEL_TOKEN
     secrets:
-      - CONTAINDERD_TUNNEL_TOKEN
+      - CONTAINERD_TUNNEL_TOKEN
 
 networks:
     proxy:
@@ -20,5 +20,5 @@ networks:
     containerd:
 
 secrets:
-  CONTAINDERD_TUNNEL_TOKEN:
+  CONTAINERD_TUNNEL_TOKEN:
     external: true
