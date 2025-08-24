@@ -1,0 +1,77 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    deploy:
+      placement:
+        constraints:
+          - node.role == manager
+    environment:
+      PUID: '${PUID}'
+      PGID: '${PGID}'
+      TZ: '${TZ}'
+      POSTGRES_PASSWORD: '${POSTGRES_PASSWORD}'
+      POSTGRES_USER: '${POSTGRES_USER}'
+    labels:
+#      wud.watch: "true"
+#      wud.tag.include: "latest"
+#      wud.watch.digest: "true"
+      traefik.enable: "true"
+      traefik.tcp.routers.linkwarden_postgres.rule: ${TRAEFIK_HTTP_ROUTERS_LINKWARDEN_POSTGRES_RULE}
+      traefik.tcp.services.linkwarden_postgres.loadbalancer.server.port: ${TRAEFIK_HTTP_SERVICES_LINKWARDEN_POSTGRES_LOADBALANCER_SERVER_PORT}
+      traefik.tcp.routers.linkwarden_postgres.entrypoints: ${TRAEFIK_HTTP_ROUTERS_LINKWARDEN_POSTGRES_ENTRYPOINTS}
+      traefik.tcp.routers.linkwarden_postgres.tls: ${TRAEFIK_HTTP_ROUTERS_LINKWARDEN_POSTGRES_TLS}
+    restart: unless-stopped
+    volumes:
+      - ${LINKWARDEN_POSTGRES_VOLUME}:/var/lib/postgresql/data
+    networks:
+      - linkwarden
+  linkwarden:
+    hostname: linkwarden
+    environment:
+      USER: "0:0"
+      DATABASE_URL: '${DATABASE_URL}'
+      PUID: '${PUID}'
+      PGID: '${PGID}'
+      TZ: '${TZ}'
+      NEXTAUTH_SECRET: ${NEXTAUTH_SECRET}
+      NEXTAUTH_URL: ${NEXTAUTH_URL}
+      NEXT_PUBLIC_AUTHENTIK_ENABLED: "true"
+      AUTHENTIK_ISSUER: ${AUTHENTIK_ISSUER}
+      AUTHENTIK_CLIENT_ID: ${AUTHENTIK_CLIENT_ID}
+      AUTHENTIK_CLIENT_SECRET: ${AUTHENTIK_CLIENT_SECRET}
+      DISABLE_NEW_SSO_USERS: "false"
+      NEXT_PUBLIC_EMAIL_PROVIDER: "true"
+      EMAIL_FROM: ${EMAIL_FROM}
+      EMAIL_SERVER: ${EMAIL_SERVER}
+    labels:
+#      wud.watch: "true"
+#      wud.tag.include: "latest"
+#      wud.watch.digest: "true"
+#      wud.tag.include: '"^\v\d+\.\d+\.\d+$$"'
+#      wud.link.template: "https://github.com/linkwarden/linkwarden/releases/tag/v$${major}.$${minor}.$${patch}"
+      traefik.enable: "true"
+      traefik.http.routers.linkwarden.rule: ${TRAEFIK_HTTP_ROUTERS_LINKWARDEN_RULE}
+      traefik.http.services.linkwarden.loadbalancer.server.port: ${TRAEFIK_HTTP_SERVICES_LINKWARDEN_LOADBALANCER_SERVER_PORT}
+      traefik.http.routers.linkwarden.entrypoints: ${TRAEFIK_HTTP_ROUTERS_LINKWARDEN_ENTRYPOINTS}
+      traefik.http.routers.linkwarden.tls: ${TRAEFIK_HTTP_ROUTERS_LINKWARDEN_TLS}
+    restart: unless-stopped
+    image: ghcr.io/linkwarden/linkwarden:latest
+    deploy:
+      placement:
+        constraints:
+          - node.role == manager
+#    ports:
+#      - 8075:3000
+    volumes:
+      - ${LINKWARDEN_VOLUME_DATA}:/data/data
+    depends_on:
+      - postgres
+    networks:
+      - linkwarden
+      - proxy
+
+
+networks:
+  proxy:
+    external: true
+  linkwarden:
