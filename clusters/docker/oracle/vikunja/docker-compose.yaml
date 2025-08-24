@@ -91,7 +91,7 @@ services:
 #      - 6379:6379
     volumes:
       - ${VIKUNJA_REDIS_VOLUME}:/data
-    labels:
+#    labels:
 #      - wud.watch=true
 #      - wud.tag.include=latest
 #      - wud.watch.digest=true
