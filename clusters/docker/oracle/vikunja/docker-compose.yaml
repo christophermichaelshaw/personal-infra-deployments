@@ -13,7 +13,7 @@ services:
       MYSQL_USER: ${MYSQL_USER}
       MYSQL_PASSWORD: ${MYSQL_PASSWORD}
       MYSQL_DATABASE: ${MYSQL_DATABASE}
-    labels:
+#    labels:
 #      - wud.watch=true
 #      - wud.tag.include=latest
 #      - wud.watch.digest=true
