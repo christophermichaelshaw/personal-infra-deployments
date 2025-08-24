@@ -1,0 +1,104 @@
+services:
+  db:
+    image: mariadb
+#    deploy:
+#      placement:
+#        constraints:
+#          - node.role == manager
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+#    ports:
+#      - 3306:3306
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+    labels:
+#      - wud.watch=true
+#      - wud.tag.include=latest
+#      - wud.watch.digest=true
+    volumes:
+      - ${VIKUNJA_MYSQL_VOLUME}:/var/lib/mysql
+    restart: unless-stopped
+    networks:
+      - vikunja
+  vikunja:
+    image: vikunja/vikunja:latest
+    deploy:
+      placement:
+        constraints:
+          - node.role == manager
+    environment:
+      VIKUNJA_DATABASE_HOST: ${VIKUNJA_DATABASE_HOST}
+      VIKUNJA_DATABASE_PASSWORD: ${VIKUNJA_DATABASE_PASSWORD}
+      VIKUNJA_DATABASE_TYPE: ${VIKUNJA_DATABASE_TYPE}
+      VIKUNJA_DATABASE_USER: ${VIKUNJA_DATABASE_USER}
+      VIKUNJA_DATABASE_DATABASE: ${VIKUNJA_DATABASE_DATABASE}
+      VIKUNJA_SERVICE_JWTSECRET: ${VIKUNJA_SERVICE_JWTSECRET}
+      VIKUNJA_SERVICE_PUBLICURL: ${VIKUNJA_SERVICE_PUBLICURL}
+      VIKUNJA_WEBHOOKS_ENABLED: ${VIKUNJA_WEBHOOKS_ENABLED}
+      VIKUNJA_MAILER_ENABLED: ${VIKUNJA_MAILER_ENABLED}
+      VIKUNJA_MAILER_HOST: ${VIKUNJA_MAILER_HOST}
+      VIKUNJA_MAILER_PORT: ${VIKUNJA_MAILER_PORT}
+      VIKUNJA_MAILER_USERNAME: ${VIKUNJA_MAILER_USERNAME}
+      VIKUNJA_MAILER_PASSWORD: ${VIKUNJA_MAILER_PASSWORD}
+      VIKUNJA_MAILER_FROMEMAIL: ${VIKUNJA_MAILER_FROMEMAIL}
+      VIKUNJA_LOG_LEVEL: ${VIKUNJA_LOG_LEVEL}
+      VIKUNJA_SERVICE_TIMEZONE: ${VIKUNJA_SERVICE_TIMEZONE}
+      VIKUNJA_REDIS_ENABLED: ${VIKUNJA_REDIS_ENABLED}
+      VIKUNJA_REDIS_HOST: ${VIKUNJA_REDIS_HOST}
+      VIKUNJA_REDIS_PASSWORD: ${VIKUNJA_REDIS_PASSWORD}
+      VIKUNJA_CACHE_ENABLED: ${VIKUNJA_CACHE_ENABLED}
+      VIKUNJA_CACHE_TYPE: ${VIKUNJA_CACHE_TYPE}
+      VIKUNJA_RATELIMIT_STORE: ${VIKUNJA_RATELIMIT_STORE}
+      VIKUNJA_KEYVALUE_TYPE: ${VIKUNJA_KEYVALUE_TYPE}
+    labels:
+#      - wud.watch=true
+#      - wud.tag.include=latest
+#      - wud.watch.digest=true
+      - "traefik.enable=true"
+      - traefik.http.routers.vikunja_server.rule=${VIKUNJA_TRAEFIK_HTTP_ROUTERS_VIKUNJA_SERVER_RULE}
+      - traefik.http.routers.vikunja_server.entrypoints=${VIKUNJA_TRAEFIK_HTTP_ROUTERS_VIKUNJA_SERVER_ENTRYPOINTS}
+      - traefik.http.routers.vikunja_server.tls=${VIKUNJA_TRAEFIK_HTTP_ROUTERS_VIKUNJA_SERVER_TLS}
+      - traefik.http.services.vikunja_server.loadbalancer.server.port=${VIKUNJA_TRAEFIK_HTTP_SERVICES_VIKUNJA_SERVER_LOADBALANCER_PORT}
+      - traefik.http.routers.vikunja_server.tls.certResolver=${VIKUNJA_TRAEFIK_HTTP_ROUTERS_VIKUNJA_SERVER_TLS_CERTRESOLVER}
+#    ports:
+#      - 3456:3456
+    volumes:
+      - ${VIKUNJA_SERVER_FILES_VOLUME}:/app/vikunja/files
+      - ${VIKUNJA_SERVER_CONFIG_VOLUME}:/etc/vikunja/config.yml:ro
+    depends_on:
+      - db
+    restart: unless-stopped
+    networks:
+      - proxy
+      - vikunja
+  redis:
+    image: redis
+#    deploy:
+#      placement:
+#        constraints:
+#          - node.role == manager
+    command: --save 60 1 --loglevel verbose --requirepass "${VIKUNJA_REDIS_PASSWORD}"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli -a '${VIKUNJA_REDIS_PASSWORD}' ping | grep PONG"]
+      #start_period: 20s
+      interval: 30s
+      retries: 5
+      timeout: 3s
+#    ports:
+#      - 6379:6379
+    volumes:
+      - ${VIKUNJA_REDIS_VOLUME}:/data
+    labels:
+#      - wud.watch=true
+#      - wud.tag.include=latest
+#      - wud.watch.digest=true
+    networks:
+      - vikunja
+
+networks:
+  proxy:
+    external: true
+  vikunja:
