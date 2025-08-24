@@ -21,7 +21,6 @@ services:
       - ${VIKUNJA_MYSQL_VOLUME}:/var/lib/mysql
     restart: unless-stopped
     networks:
-      - vikunja
       - proxy
   vikunja:
     image: vikunja/vikunja:latest
@@ -70,10 +69,10 @@ services:
       - ${VIKUNJA_SERVER_CONFIG_VOLUME}:/etc/vikunja/config.yml:ro
     depends_on:
       - db
+      - redis
     restart: unless-stopped
     networks:
       - proxy
-      - vikunja
   redis:
     image: redis
 #    deploy:
@@ -97,8 +96,7 @@ services:
 #      - wud.tag.include=latest
 #      - wud.watch.digest=true
     networks:
-      - vikunja
-
+      - proxy
 networks:
   proxy:
     external: true
