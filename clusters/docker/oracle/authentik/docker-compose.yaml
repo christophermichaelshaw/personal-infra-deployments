@@ -64,7 +64,7 @@ services:
 #      - proxy
       - authentik_default
   server:
-    image: ${AUTHENTIK_IMAGE:-ghcr.io/goauthentik/server}:${AUTHENTIK_TAG:-2025.6.4}
+    image: ${AUTHENTIK_IMAGE:-ghcr.io/goauthentik/server}:${AUTHENTIK_TAG:-2025.8.1}
     deploy:
       placement:
         constraints:
@@ -135,7 +135,7 @@ services:
 #      - proxy
       - authentik_default
   worker:
-    image: ${AUTHENTIK_IMAGE:-ghcr.io/goauthentik/server}:${AUTHENTIK_TAG:-2025.6.4}
+    image: ${AUTHENTIK_IMAGE:-ghcr.io/goauthentik/server}:${AUTHENTIK_TAG:-2025.8.1}
     #image: ghcr.io/goauthentik/server
     deploy:
       placement:
