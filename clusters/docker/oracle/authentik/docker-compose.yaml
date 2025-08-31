@@ -18,13 +18,10 @@ services:
     volumes:
       - ${AUTHENTIK_PG_VOLUME}:/var/lib/postgresql/data
     environment:
-      POSTGRES_PASSWORD: /run/secrets/AUTHENTIK_POSTGRESQL__PASSWORD
-      POSTGRES_USER: ${AUTHENTIK_POSTGRESQL__USER}
+      POSTGRES_PASSWORD: ${AUTHENTIK_POSTGRESQL_PASSWORD}
+      POSTGRES_USER: ${AUTHENTIK_POSTGRESQL__USER:-authentik}
       POSTGRES_DB: ${AUTHENTIK_POSTGRESQL__NAME:-authentik}
       #TZ: America/Los_Angeles
-    secrets:
-
-      - AUTHENTIK_POSTGRESQL__PASSWORD
     labels:
       #wud.watch: "true"
       #wud.tag.include: "latest"
@@ -61,7 +58,6 @@ services:
 #      - wud.tag.include=latest
 #      - wud.watch.digest=true
     networks:
-#      - proxy
       - authentik_default
   server:
     image: ${AUTHENTIK_IMAGE:-ghcr.io/goauthentik/server}:${AUTHENTIK_TAG:-2025.8.1}
@@ -132,7 +128,6 @@ services:
 #      - "wud.tag.include=latest"
 #      - "wud.watch.digest=true"
     networks:
-#      - proxy
       - authentik_default
   worker:
     image: ${AUTHENTIK_IMAGE:-ghcr.io/goauthentik/server}:${AUTHENTIK_TAG:-2025.8.1}
@@ -192,7 +187,6 @@ services:
       - ${AUTHENTIK_WORKER_VOLUME_CUSTOM_TEMPLATES}:/templates
       - ${AUTHENTIK_GEOIPUPDATE_VOLUME}:/geoip
     networks:
-#      - proxy
       - authentik_default
   geoipupdate:
     image: "maxmindinc/geoipupdate:latest"
@@ -252,10 +246,6 @@ volumes:
     driver: local
 
 secrets:
-  AUTHENTIK_POSTGRESQL__NAME:
-    external: true
-  AUTHENTIK_POSTGRESQL__PASSWORD:
-    external: true
   AUTHENTIK_REDIS__PASSWORD:
     external: true
   AUTHENTIK_SECRET_KEY:
