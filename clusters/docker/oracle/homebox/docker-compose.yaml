@@ -10,7 +10,6 @@ services:
       - HBOX_WEB_MAX_UPLOAD_SIZE=100
       - HBOX_OPTIONS_ALLOW_REGISTRATION=TRUE
       - HBOX_OPTIONS_AUTO_INCREMENT_ASSET_ID=TRUE
-      - HBOX_OPTIONS_ALLOW_REGISTRATION=false
       - HBOX_MAILER_HOST=/run/secrets/HOMEBOX_MAILER_HOST
       - HBOX_MAILER_PORT=${HOMEBOX_HBOX_MAILER_PORT}
       - HBOX_MAILER_USERNAME=/run/secrets/HOMEBOX_MAILER_USERNAME
@@ -36,6 +35,8 @@ services:
       - traefik.http.services.homebox.loadbalancer.server.port=${TRAEFIK_HTTP_SERVICES_HOMEB0X_LOADBALANCER_SERVER_PORT}
     networks:
       - proxy
+      - homebox
+
 
 volumes:
    homebox-data:
