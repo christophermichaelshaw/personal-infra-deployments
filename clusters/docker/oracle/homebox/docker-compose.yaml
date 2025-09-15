@@ -3,7 +3,7 @@ services:
       image: postgres:16
       restart: always
       volumes:
-        - ${HOMEBOX_DATABASE_VOLUME}:/var/lib/postgresql/data/
+        - ${HOMEBOX_DATABASE_VOLUME}=/var/lib/postgresql/data/
       environment:
         - POSTGRES_USER=${HOMEBOX_DB_USERNAME}
         - POSTGRES_PASSWORD=${HOMEBOX_DB_PASSWORD}
