@@ -55,9 +55,9 @@ services:
       - homebox
 
 
-volumes:
-   homebox-data:
-     driver: local
+#volumes:
+#   homebox-data:
+#     driver: local
 
 networks:
   homebox:
