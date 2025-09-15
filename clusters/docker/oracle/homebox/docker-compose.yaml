@@ -1,0 +1,59 @@
+services:
+  homebox:
+    image: ghcr.io/sysadminsmedia/homebox:latest
+    container_name: homebox
+    restart: always
+    environment:
+    - HBOX_MODE=production
+    - HBOX_LOG_LEVEL=info
+    - HBOX_LOG_FORMAT=text
+    - HBOX_WEB_MAX_UPLOAD_SIZE=100
+    - HBOX_OPTIONS_ALLOW_REGISTRATION=TRUE
+    - HBOX_OPTIONS_AUTO_INCREMENT_ASSET_ID=TRUE
+    - HBOX_OPTIONS_ALLOW_REGISTRATION=false
+    - HBOX_MAILER_HOST=/run/secrets/HOMEBOX_MAILER_HOST
+    - HBOX_MAILER_PORT=/run/secrets/HOMEBOX_MAILER_PORT
+    - HBOX_MAILER_USERNAME=/run/secrets/HOMEBOX_MAILER_USERNAME
+    - HBOX_MAILER_PASSWORD=/run/secrets/HOMEBOX_MAILER_PASSWORD
+    - HBOX_MAILER_FROM=/run/secrets/HOMEBOX_MAILER_FROM
+    - HBOX_OPTIONS_ALLOW_ANALYTICS=false
+    - HBOX_OPTIONS_GITHUB_RELEASE_CHECK=true
+    secrets:
+      - HOMEBOX_HBOX_MAILER_FROM
+      - HOMEBOX_HBOX_MAILER_HOST
+      - HOMEBOX_HBOX_MAILER_PORT
+      - HOMEBOX_HBOX_MAILER_USERNAME
+      - HOMEBOX_HBOX_MAILER_PASSWORD
+    volumes:
+      - ${HOMEBOX_DATA_VOLUME}:/data/
+#    ports:
+#      - 8055:7745
+    labels:
+#      - wud.watch=true
+      - traefik.enable=true
+      - traefik.http.routers.homebox.rule=${TRAEFIK_HTTP_ROUTERS_HOMEB0X_RULE}
+      - traefik.http.routers.homebox.entrypoints=${TRAEFIK_HTTP_ROUTERS_HOMEB0X_ENTRYPOINTS}
+      - traefik.http.routers.homebox.tls=${TRAEFIK_HTTP_ROUTERS_HOMEB0X_TLS}
+      - traefik.http.services.homebox.loadbalancer.server.port=${TRAEFIK_HTTP_SERVICES_HOMEB0X_LOADBALANCER_SERVER_PORT}
+    networks:
+      - proxy
+
+volumes:
+   homebox-data:
+     driver: local
+
+networks:
+  proxy:
+    external: true
+
+secrets:
+  HOMEBOX_HBOX_MAILER_FROM:
+    external: true
+  HOMEBOX_HBOX_MAILER_HOST:
+    external: true
+  HOMEBOX_HBOX_MAILER_PORT:
+    external: true
+  HOMEBOX_HBOX_MAILER_USERNAME:
+    external: true
+  HOMEBOX_HBOX_MAILER_PASSWORD:
+    external: true
