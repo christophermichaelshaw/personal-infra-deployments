@@ -50,8 +50,6 @@ secrets:
     external: true
   HOMEBOX_HBOX_MAILER_HOST:
     external: true
-  HOMEBOX_HBOX_MAILER_PORT:
-    external: true
   HOMEBOX_HBOX_MAILER_USERNAME:
     external: true
   HOMEBOX_HBOX_MAILER_PASSWORD:
