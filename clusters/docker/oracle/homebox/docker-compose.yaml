@@ -1,4 +1,15 @@
 services:
+  db:
+      image: postgres:16
+      restart: always
+      volumes:
+        - ${HOMEBOX_DATABASE_VOLUME}:/var/lib/postgresql/data/
+      environment:
+        - POSTGRES_USER=${HOMEBOX_DB_USERNAME}
+        - POSTGRES_PASSWORD=${HOMEBOX_DB_PASSWORD}
+        - POSTGRES_DB=${HOMEBOX_DB_NAME}
+      networks:
+        - homebox
   homebox:
     image: ghcr.io/sysadminsmedia/homebox:latest
     container_name: homebox
@@ -17,13 +28,19 @@ services:
       - HBOX_MAILER_FROM=/run/secrets/HOMEBOX_MAILER_FROM
       - HBOX_OPTIONS_ALLOW_ANALYTICS=false
       - HBOX_OPTIONS_GITHUB_RELEASE_CHECK=true
+      - HBOX_DATABASE_DRIVER=postgres
+      - HBOX_DATABASE_HOST=${HOMEBOX_HBOX_DATABASE_HOST}
+      - HBOX_DATABASE_PORT=${HOMEBOX_HBOX_DATABASE_PORT}
+      - HBOX_DATABASE_DBNAME=${HOMEBOX_HBOX_DATABASE_DBNAME}
+      - HBOX_DATABASE_USERNAME=${HOMEBOX_HBOX_DATABASE_USERNAME}
+      - HBOX_DATABASE_PASSWORD=${HOMEBOX_HBOX_DATABASE_PASSWORD}
     secrets:
       - HOMEBOX_HBOX_MAILER_FROM
       - HOMEBOX_HBOX_MAILER_HOST
       - HOMEBOX_HBOX_MAILER_USERNAME
       - HOMEBOX_HBOX_MAILER_PASSWORD
-    volumes:
-      - ${HOMEBOX_DATA_VOLUME}:/data/
+#    volumes:
+#      - ${HOMEBOX_DATA_VOLUME}:/data/
 #    ports:
 #      - 8055:7745
     labels:
@@ -43,6 +60,7 @@ volumes:
      driver: local
 
 networks:
+  homebox:
   proxy:
     external: true
 
