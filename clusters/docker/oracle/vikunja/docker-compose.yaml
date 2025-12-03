@@ -53,9 +53,9 @@ services:
       VIKUNJA_RATELIMIT_STORE: ${VIKUNJA_RATELIMIT_STORE}
       VIKUNJA_KEYVALUE_TYPE: ${VIKUNJA_KEYVALUE_TYPE}
     labels:
-#      - wud.watch=true
-#      - wud.tag.include=latest
-#      - wud.watch.digest=true
+      - wud.watch=true
+      - wud.tag.include=latest
+      - wud.watch.digest=true
       - "traefik.enable=true"
       - traefik.http.routers.vikunja_server.rule=${VIKUNJA_TRAEFIK_HTTP_ROUTERS_VIKUNJA_SERVER_RULE}
       - traefik.http.routers.vikunja_server.entrypoints=${VIKUNJA_TRAEFIK_HTTP_ROUTERS_VIKUNJA_SERVER_ENTRYPOINTS}
@@ -92,9 +92,9 @@ services:
     volumes:
       - ${VIKUNJA_REDIS_VOLUME}:/data
 #    labels:
-#      - wud.watch=true
-#      - wud.tag.include=latest
-#      - wud.watch.digest=true
+      - wud.watch=true
+      - wud.tag.include=latest
+      - wud.watch.digest=true
     networks:
       - proxy
 networks:
