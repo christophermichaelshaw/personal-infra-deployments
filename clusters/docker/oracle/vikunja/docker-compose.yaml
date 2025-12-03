@@ -92,9 +92,9 @@ services:
     volumes:
       - ${VIKUNJA_REDIS_VOLUME}:/data
     labels:
-      - wud.watch=true
-      - wud.tag.include=latest
-      - wud.watch.digest=true
+      wud.watch: "true"
+      wud.tag.include: "latest"
+      wud.watch.digest: "true"
     networks:
       - proxy
 networks:
