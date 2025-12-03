@@ -20,7 +20,7 @@ services:
       - traefik.http.routers.wud.entrypoints=${TRAEFIK_HTTP_ROUTERS_WUD_ENTRYPOINTS}
       - traefik.http.routers.wud.tls=${TRAEFIK_HTTP_ROUTERS_WUD_TLS}
       - traefik.http.routers.wud.tls.certresolver=${TRAEFIK_HTTP_ROUTERS_WUD_TLS_CERTRESOLVER}
-      - traefik.http.routers.wud.service=${TRAEFIK_HTTP_ROUTERS_WUD_SERVICE}
+#      - traefik.http.routers.wud.service=${TRAEFIK_HTTP_ROUTERS_WUD_SERVICE}
       - traefik.http.services.wud.loadbalancer.server.port=${TRAEFIK_HTTP_SERVICES_WUD_LOADBALANCER_SERVER_PORT}    
     environment:
       - TZ=${TZ}
