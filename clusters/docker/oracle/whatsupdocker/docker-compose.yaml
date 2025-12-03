@@ -1,6 +1,6 @@
 services:
   whatsupdocker:
-    image: getwud/wudfmartinou/whats-up-docker
+    image: getwud/wud
     deploy:
       placement:
         constraints:
