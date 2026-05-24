@@ -35,30 +35,31 @@ services:
     networks:
 #      - proxy
       - authentik_default
-  redis:
-    image: docker.io/library/redis:alpine
-    deploy:
-      placement:
-        constraints:
-          - node.role == manager
-    command: --save 60 1 --loglevel verbose --requirepass "${AUTHENTIK_REDIS__PASSWORD}"
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD-SHELL", "redis-cli -a '${AUTHENTIK_REDIS__PASSWORD}' ping | grep PONG"]
-      start_period: 20s
-      interval: 30s
-      retries: 5
-      timeout: 3s
-    ports:
-      - 6379:6379
-    volumes:
-      - ${AUTHENTIK_REDIS__VOLUME}:/data
+### Depricated in 2025.10.0 per https://goauthentik.io/blog/2025-11-13-we-removed-redis/
+#  redis:
+#    image: docker.io/library/redis:alpine
+#    deploy:
+#      placement:
+#        constraints:
+#          - node.role == manager
+#    command: --save 60 1 --loglevel verbose --requirepass "${AUTHENTIK_REDIS__PASSWORD}"
+#    restart: unless-stopped
+#    healthcheck:
+#      test: ["CMD-SHELL", "redis-cli -a '${AUTHENTIK_REDIS__PASSWORD}' ping | grep PONG"]
+#      start_period: 20s
+#      interval: 30s
+#      retries: 5
+#      timeout: 3s
+#    ports:
+#      - 6379:6379
+#    volumes:
+#      - ${AUTHENTIK_REDIS__VOLUME}:/data
 #    labels:
 #      - wud.watch=true
 #      - wud.tag.include=latest
 #      - wud.watch.digest=true
-    networks:
-      - authentik_default
+#    networks:
+#      - authentik_default
   server:
     image: ${AUTHENTIK_IMAGE:-ghcr.io/goauthentik/server}:${AUTHENTIK_TAG:-2026.5.0}
     deploy:
