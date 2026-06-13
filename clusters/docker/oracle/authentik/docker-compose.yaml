@@ -61,7 +61,7 @@ services:
 #    networks:
 #      - authentik_default
   server:
-    image: ${AUTHENTIK_IMAGE:-ghcr.io/goauthentik/server}:${AUTHENTIK_TAG:-2026.5.2}
+    image: ${AUTHENTIK_IMAGE:-ghcr.io/goauthentik/server}:${AUTHENTIK_TAG:-2026.5.3}
     deploy:
       placement:
         constraints:
@@ -131,7 +131,7 @@ services:
     networks:
       - authentik_default
   worker:
-    image: ${AUTHENTIK_IMAGE:-ghcr.io/goauthentik/server}:${AUTHENTIK_TAG:-2026.5.2}
+    image: ${AUTHENTIK_IMAGE:-ghcr.io/goauthentik/server}:${AUTHENTIK_TAG:-2026.5.3}
     #image: ghcr.io/goauthentik/server
     deploy:
       placement:
