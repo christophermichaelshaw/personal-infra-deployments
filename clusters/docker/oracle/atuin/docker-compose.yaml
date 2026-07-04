@@ -3,7 +3,7 @@ services:
     user: "0:0"
     restart: always
     image: ghcr.io/atuinsh/atuin
-    command: server start
+    command: start
     volumes:
       - ${ATUIN_CONFIG_VOLUME}:/config
     links:
