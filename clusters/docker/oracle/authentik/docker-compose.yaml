@@ -18,10 +18,17 @@ services:
     volumes:
       - ${AUTHENTIK_PG_VOLUME}:/var/lib/postgresql/data
     environment:
-      POSTGRES_PASSWORD: ${AUTHENTIK_POSTGRESQL_PASSWORD}
-      POSTGRES_USER: ${AUTHENTIK_POSTGRESQL__USER:-authentik}
-      POSTGRES_DB: ${AUTHENTIK_POSTGRESQL__NAME:-authentik}
+      #POSTGRES_PASSWORD: ${AUTHENTIK_POSTGRESQL_PASSWORD}
+      #POSTGRES_USER: ${AUTHENTIK_POSTGRESQL__USER:-authentik}
+      #POSTGRES_DB: ${AUTHENTIK_POSTGRESQL__NAME:-authentik}
+      POSTGRES_PASSWORD: /run/secrets/AUTHENTIK_POSTGRESQL__PASSWORD
+      POSTGRES_USER: /run/secrets/AUTHENTIK_POSTGRESQL__USER
+      POSTGRES_DB: /run/secrets/AUTHENTIK_POSTGRESQL__NAME
       #TZ: America/Los_Angeles
+    secrets:
+      - AUTHENTIK_POSTGRESQL__PASSWORD
+      - AUTHENTIK_POSTGRESQL__USER
+      - AUTHENTIK_POSTGRESQL__NAME
     labels:
       #wud.watch: "true"
       #wud.tag.include: "latest"
