@@ -16,13 +16,13 @@ services:
       ATUIN_DB_URI: postgres://${ATUIN_DB_USERNAME}:${ATUIN_DB_PASSWORD}@postgresql/atuin
       RUST_LOG: info,atuin_server=debug
     labels:
-      - traefik.enable=${TRAEFIK_ENABLE}
-      - traefik.http.routers.atuin.rule=${TRAEFIK_HTTP_ROUTERS_ATUIN_RULE}
-      - traefik.http.routers.atuin.entrypoints=${TRAEFIK_HTTP_ROUTERS_ATUIN_ENTRYPOINTS}
-      - traefik.http.routers.atuin.tls=${TRAEFIK_HTTP_ROUTERS_ATUIN_TLS}
-      - traefik.http.routers.atuin.tls.certresolver=${TRAEFIK_HTTP_ROUTERS_ATUIN_TLS_CERTRESOLVER}
-      - traefik.http.routers.atuin.service=${TRAEFIK_HTTP_ROUTERS_ATUIN_SERVICE}
-      - traefik.http.services.atuin.loadbalancer.server.port=${TRAEFIK_HTTP_SERVICES_ATUIN_LOADBALANCER_SERVER_PORT}
+      traefik.enable: ${TRAEFIK_ENABLE}
+      traefik.http.routers.atuin.rule: ${TRAEFIK_HTTP_ROUTERS_ATUIN_RULE}
+      traefik.http.routers.atuin.entrypoints: ${TRAEFIK_HTTP_ROUTERS_ATUIN_ENTRYPOINTS}
+      traefik.http.routers.atuin.tls: ${TRAEFIK_HTTP_ROUTERS_ATUIN_TLS}
+      traefik.http.routers.atuin.tls.certresolver: ${TRAEFIK_HTTP_ROUTERS_ATUIN_TLS_CERTRESOLVER}
+      traefik.http.routers.atuin.service: ${TRAEFIK_HTTP_ROUTERS_ATUIN_SERVICE}
+      traefik.http.services.atuin.loadbalancer.server.port: ${TRAEFIK_HTTP_SERVICES_ATUIN_LOADBALANCER_SERVER_PORT}
     networks:
       atuin:
       proxy:
