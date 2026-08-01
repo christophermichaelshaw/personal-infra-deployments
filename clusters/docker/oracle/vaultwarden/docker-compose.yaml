@@ -1,0 +1,100 @@
+services:
+  postgres:
+    image: docker.io/library/postgres:16-alpine
+    deploy:
+#      placement:
+#        constraints:
+#          - node.role == manager
+#          - node.hostname==${constraint_node_hostname}
+      labels:
+        traefik.enable: ${TRAEFIK_ENABLE}
+        traefik.swarm.network: ${TRAEFIK_SWARM_NETWORK}
+        traefik.tcp.routers.vaultwarden_postgres.rule: ${TRAEFIK_TCP_ROUTERS_VAULTWARDEN_POSTGRES_RULE}
+        traefik.tcp.services.vaultwarden_postgres.loadbalancer.server.port: ${TRAEFIK_TCP_SERVICES_VAULTWARDEN_POSTGRES_LOADBALANCER_SERVER_PORT}
+        traefik.tcp.routers.vaultwarden_postgres.entrypoints: ${TRAEFIK_TCP_ROUTERS_VAULTWARDEN_POSTGRES_ENTRYPOINTS}
+        traefik.tcp.routers.vaultwarden_postgres.tls: ${TRAEFIK_TCP_ROUTERS_VAULTWARDEN_POSTGRES_TLS}
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -d $${POSTGRES_DB} -U $${POSTGRES_USER}"]
+      start_period: 20s
+      interval: 30s
+      retries: 5
+    expose:
+      - "5432"
+#      timeout: 5s
+#    ports:
+#      - 5432:5432
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - ${VAULTWARDEN_POSTGRES_DATA_VOLUME}:/var/lib/postgresql/data
+    environment:
+      POSTGRES_PASSWORD: ${PG_PASS}
+      POSTGRES_USER: ${PG_USER}
+      POSTGRES_DB: ${PG_DB}
+      TZ: ${TZ}
+    labels:
+      wud.watch: "true"
+      wud.tag.include: '^(0|[1-9]\d*)-alpine$$'
+      wud.watch.digest: "true"
+    networks:
+      - vaultwarden
+
+  vaultwarden:
+    image: vaultwarden/server:latest
+    deploy:
+#      placement:
+#        constraints:
+#          - node.role == manager
+#          - node.hostname==${constraint_node_hostname}
+      labels:
+        traefik.enable: ${TRAEFIK_ENABLE}
+        traefik.swarm.network: ${TRAEFIK_SWARM_NETWORK}
+        traefik.http.routers.bitwarden.rule: ${TRAEFIK_HTTP_ROUTERS_BITWARDEN_RULE}
+        traefik.http.routers.bitwarden.entrypoints: ${TRAEFIK_HTTP_ROUTERS_BITWARDEN_ENTRYPOINTS}
+        traefik.http.routers.bitwarden.tls: ${TRAEFIK_HTTP_ROUTERS_BITWARDEN_TLS}
+        traefik.http.services.bitwarden.loadbalancer.server.port: ${TRAEFIK_HTTP_SERVICES_BITWARDEN_LOADBALANCER_SERVER_PORT}
+        traefik.http.routers.bitwarden.service: ${TRAEFIK_HTTP_ROUTERS_BITWARDEN_SERVICE}
+        traefik.http.routers.bitwarden-admin.rule: ${TRAEFIK_HTTP_ROUTERS_BITWARDEN_ADMIN_RULE}
+        traefik.http.routers.bitwarden-admin.entrypoints: ${TRAEFIK_HTTP_ROUTERS_BITWARDEN_ADMIN_ENTRYPOINTS}
+        traefik.http.routers.bitwarden-admin.priority: ${TRAEFIK_HTTP_ROUTERS_BITWARDEN_ADMIN_PRIORITY}
+        traefik.http.routers.bitwarden-admin.middlewares: ${TRAEFIK_HTTP_ROUTERS_BITWARDEN_ADMIN_MIDDLEWARES}
+        traefik.http.middlewares.bitwarden-admin-ipallowlist.ipallowlist.sourcerange: ${TRAEFIK_HTTP_MIDDLEWARES_BITWARDEN_ADMIN_IPALLOWLIST_SOURCERANGE}
+        traefik.http.middlewares.bitwarden-admin-ipallowlist.ipallowlist.ipstrategy.depth: ${TRAEFIK_HTTP_MIDDLEWARES_BITWARDEN_ADMIN_IPALLOWLIST_IPSTRATEGY_DEPTH} 
+    container_name: vaultwarden
+    restart: always
+#    ports:
+#      - '7277:80'
+#      - '3012:3012'
+    environment:
+      - WEBSOCKET_ENABLED=${WAULTWARDEN_WEBSOCKET_ENABLED}
+      - WEBSOCKET_ADDRESS=${WAULTWARDEN_WEBSOCKET_ADDRESS}
+      - WEBSOCKET_PORT=${WAULTWARDEN_WEBSOCKET_PORT}
+      ## Enables push notifications (requires key and id from https://bitwarden.com/host)
+      - PUSH_ENABLED=${WAULTWARDEN_PUSH_ENABLED}
+      - PUSH_INSTALLATION_ID=${WAULTWARDEN_PUSH_INSTALLATION_ID}
+      - PUSH_INSTALLATION_KEY=${PWAULTWARDEN_USH_INSTALLATION_KEY}
+      - PUSH_RELAY_URI=${WAULTWARDEN_PUSH_RELAY_URI}
+      - PUSH_IDENTITY_URI=${PUSH_IDENTITY_URI}
+      - TZ=America/Los_Angeles
+      - DATABASE_URL=${WAULTWARDEN_DATABASE_URL}
+      - SSO_ENABLED=${WAULTWARDEN_SSO_ENABLED}
+#      - SSO_FRONTEND=${SSO_FRONTEND}
+      - SSO_AUTHORITY=${WAULTWARDEN_SSO_AUTHORITY}
+      - SSO_SCOPES=${WAULTWARDEN_SSO_SCOPES}
+      - SSO_CLIENT_ID=${WAULTWARDEN_SSO_CLIENT_ID}
+      - SSO_CLIENT_SECRET=${WAULTWARDEN_SSO_CLIENT_SECRET}
+      - SSO_PKCE=${WAULTWARDEN_SSO_PKCE}
+    labels:
+      - wud.watch=true
+      - wud.tag.include=latest
+      - wud.watch.digest=true
+    networks: 
+      - vaultwarden
+      - proxy
+    volumes:
+      - ${VAULTWARDEN_DATA_VOLUME}:/data
+
+networks:
+  proxy:
+    external: true
+  vaultwarden:
