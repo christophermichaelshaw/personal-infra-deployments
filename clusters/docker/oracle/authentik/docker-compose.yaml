@@ -6,6 +6,13 @@ services:
         constraints:
           - node.role == ${AUTHENTIK_PG_DOCKER_NODE_ROLE:-manager}
 #          - node.hostname== ${AUTHENTIK_PG_DOCKER_NODE_HOSTNAME}
+      labels:
+        traefik.enable: ${AUTHENTIK_TRAEFIK_POSTGRESQL_ENABLE}
+        traefik.swarm.network: ${AUTHENTIK_TRAEFIK_POSTGRESQL_SWARM_NETWORK}
+        traefik.tcp.routers.authentik_postgres.rule: ${AUTHENTIK_TRAEFIK_TCP_ROUTERS_AUTHENTIK_POSTGRES_RULE}
+        traefik.tcp.services.authentik_po- proxystgres.loadbalancer.server.port: ${AUTHENTIK_TRAEFIK_TCP_SERVICES_AUTHENTIK_POSTGRES_LOADBALANCER_SERVER_PORT}
+        traefik.tcp.routers.authentik_postgres.entrypoints: ${AUTHENTIK_TRAEFIK_TCP_ROUTERS_AUTHENTIK_POSTGRES_ENTRYPOINTS}
+        traefik.tcp.routers.authentik_postgres.tls: ${AUTHENTIK_TRAEFIK_TCP_ROUTERS_AUTHENTIK_POSTGRES_TLS}
     restart: unless-stopped
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -d $${POSTGRES_DB} -U $${POSTGRES_USER}"]
@@ -26,12 +33,6 @@ services:
       - AUTHENTIK_POSTGRESQL__PASSWORD
       - AUTHENTIK_POSTGRESQL__USER
       - AUTHENTIK_POSTGRESQL__NAME
-    labels:
-      traefik.enable: ${AUTHENTIK_TRAEFIK_POSTGRESQL_ENABLE}
-      traefik.tcp.routers.authentik_postgres.rule: ${AUTHENTIK_TRAEFIK_TCP_ROUTERS_AUTHENTIK_POSTGRES_RULE}
-      traefik.tcp.services.authentik_po- proxystgres.loadbalancer.server.port: ${AUTHENTIK_TRAEFIK_TCP_SERVICES_AUTHENTIK_POSTGRES_LOADBALANCER_SERVER_PORT}
-      traefik.tcp.routers.authentik_postgres.entrypoints: ${AUTHENTIK_TRAEFIK_TCP_ROUTERS_AUTHENTIK_POSTGRES_ENTRYPOINTS}
-      traefik.tcp.routers.authentik_postgres.tls: ${AUTHENTIK_TRAEFIK_TCP_ROUTERS_AUTHENTIK_POSTGRES_TLS}
     networks:
       - authentik_default
   server:
@@ -40,6 +41,19 @@ services:
       placement:
         constraints:
           - node.role == manager
+      labels:
+        traefik.enable: ${AUTHENTIK_TRAEFIK_SERVER_ENABLE}
+        traefik.docker.network: ${AUTHENTIK_TRAEFIK_SERVER_DOCKER_NETWORK}
+        traefik.http.routers.authentik.priority: 1
+  #      - "traefik.http.routers.authentik-outpost.priority=3"
+        ## Authentik Web Interface
+        traefik.http.routers.authentik.rule: ${AUTHENTIK_TRAEFIK_HTTP_ROUTERS_AUTHENTIK_RULE}
+        traefik.http.routers.authentik.entrypoints: ${AUTHENTIK_TRAEFIK_HTTP_ROUTERS_AUTHENTIK_ENTRYPOINTS}
+        traefik.http.routers.authentik.tls: ${AUTHENTIK_TRAEFIK_HTTP_ROUTERS_AUTHENTIK_TLS}
+        traefik.http.routers.authentik.tls.certresolver: ${AUTHENTIK_TRAEFIK_HTTP_ROUTERS_AUTHENTIK_TLS_CERTRESOLVER}
+        traefik.http.routers.authentik.service: ${AUTHENTIK_TRAEFIK_HTTP_ROUTERS_AUTHENTIK_SERVICE}
+        traefik.http.services.authentik.loadbalancer.server.port: ${AUTHENTIK_TRAEFIK_HTTP_SERVICES_AUTHENTIK_LOADBALANCER_SERVER_PORT}
+        traefik.http.routers.authentik.middlewares: ${AUTHENTIK_TRAEFIK_HTTP_ROUTERS_AUTHENTIK_MIDDLEWARES}
     restart: unless-stopped
     command: server
     environment:
@@ -79,19 +93,7 @@ services:
 #    ports:
 #      - "${AUTHENTIK_PORT_HTTP:-9000}:9000"
 #      - "${AUTHENTIK_PORT_HTTPS:-9443}:9443"
-    labels:
-      traefik.enable: ${AUTHENTIK_TRAEFIK_SERVER_ENABLE}
-      traefik.docker.network: ${AUTHENTIK_TRAEFIK_SERVER_DOCKER_NETWORK}
-      traefik.http.routers.authentik.priority: 1
-#      - "traefik.http.routers.authentik-outpost.priority=3"
-      ## Authentik Web Interface
-      traefik.http.routers.authentik.rule: ${AUTHENTIK_TRAEFIK_HTTP_ROUTERS_AUTHENTIK_RULE}
-      traefik.http.routers.authentik.entrypoints: ${AUTHENTIK_TRAEFIK_HTTP_ROUTERS_AUTHENTIK_ENTRYPOINTS}
-      traefik.http.routers.authentik.tls: ${AUTHENTIK_TRAEFIK_HTTP_ROUTERS_AUTHENTIK_TLS}
-      traefik.http.routers.authentik.tls.certresolver: ${AUTHENTIK_TRAEFIK_HTTP_ROUTERS_AUTHENTIK_TLS_CERTRESOLVER}
-      traefik.http.routers.authentik.service: ${AUTHENTIK_TRAEFIK_HTTP_ROUTERS_AUTHENTIK_SERVICE}
-      traefik.http.services.authentik.loadbalancer.server.port: ${AUTHENTIK_TRAEFIK_HTTP_SERVICES_AUTHENTIK_LOADBALANCER_SERVER_PORT}
-      traefik.http.routers.authentik.middlewares: ${AUTHENTIK_TRAEFIK_HTTP_ROUTERS_AUTHENTIK_MIDDLEWARES}
+#    labels:
       ## What's Up Docker Tags
 #      - "wud.watch=true"
 #      - "wud.tag.include=latest"
@@ -177,14 +179,16 @@ services:
 #      - wud.watch.digest=true
   whoami:
       image: containous/whoami
-      labels:
-          traefik.enable: ${AUTHENTIK_TRAEFIK_WHOAMI_ENABLE}
-          traefik.http.routers.whoami.rule: ${AUTHENTIK_TRAEFIK_WHOAMI_HTTP_ROUTERS_WHOAMI_RULE}
-          traefik.http.routers.whoami.middlewares: ${AUTHENTIK_TRAEFIK_WHOAMI_HTTP_ROUTERS_WHOAMI_MIDDLEWARES}
-          traefik.http.routers.whoami.entrypoints: ${AUTHENTIK_TRAEFIK_WHOAMI_HTTP_ROUTERS_WHOAMI_ENTRYPOINTS}
-          traefik.http.routers.whoami.tls: ${AUTHENTIK_TRAEFIK_WHOAMI_HTTP_ROUTERS_WHOAMI_TLS}
-          traefik.http.routers.whoami.service: ${AUTHENTIK_TRAEFIK_WHOAMI_HTTP_ROUTERS_WHOAMI_SERVICE}
-          traefik.http.services.whoami.loadbalancer.server.port: ${AUTHENTIK_TRAEFIK_WHOAMI_HTTP_SERVICES_WHOAMI_LOADBALANCER_SERVER_PORT}
+      deploy:
+        labels:
+            traefik.enable: ${AUTHENTIK_TRAEFIK_WHOAMI_ENABLE}
+            traefik.swarm.network: ${AUTHENTIK_TRAEFIK_WHOAMI_SWARM_NETWORK}
+            traefik.http.routers.whoami.rule: ${AUTHENTIK_TRAEFIK_WHOAMI_HTTP_ROUTERS_WHOAMI_RULE}
+            traefik.http.routers.whoami.middlewares: ${AUTHENTIK_TRAEFIK_WHOAMI_HTTP_ROUTERS_WHOAMI_MIDDLEWARES}
+            traefik.http.routers.whoami.entrypoints: ${AUTHENTIK_TRAEFIK_WHOAMI_HTTP_ROUTERS_WHOAMI_ENTRYPOINTS}
+            traefik.http.routers.whoami.tls: ${AUTHENTIK_TRAEFIK_WHOAMI_HTTP_ROUTERS_WHOAMI_TLS}
+            traefik.http.routers.whoami.service: ${AUTHENTIK_TRAEFIK_WHOAMI_HTTP_ROUTERS_WHOAMI_SERVICE}
+            traefik.http.services.whoami.loadbalancer.server.port: ${AUTHENTIK_TRAEFIK_WHOAMI_HTTP_SERVICES_WHOAMI_LOADBALANCER_SERVER_PORT}
       restart: unless-stopped
       networks:
           - authentik_default
