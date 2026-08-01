@@ -28,6 +28,14 @@ services:
       placement:
         constraints:
           - node.role == manager
+      labels:
+        - traefik.enable=true
+        - traefik.swarm.network=${VIKUNJA_TRAEFIK_SWARM_NETWORK}
+        - traefik.http.routers.vikunja_server.rule=${VIKUNJA_TRAEFIK_HTTP_ROUTERS_VIKUNJA_SERVER_RULE}
+        - traefik.http.routers.vikunja_server.entrypoints=${VIKUNJA_TRAEFIK_HTTP_ROUTERS_VIKUNJA_SERVER_ENTRYPOINTS}
+        - traefik.http.routers.vikunja_server.tls=${VIKUNJA_TRAEFIK_HTTP_ROUTERS_VIKUNJA_SERVER_TLS}
+        - traefik.http.services.vikunja_server.loadbalancer.server.port=${VIKUNJA_TRAEFIK_HTTP_SERVICES_VIKUNJA_SERVER_LOADBALANCER_PORT}
+        - traefik.http.routers.vikunja_server.tls.certResolver=${VIKUNJA_TRAEFIK_HTTP_ROUTERS_VIKUNJA_SERVER_TLS_CERTRESOLVER}
     environment:
       VIKUNJA_DATABASE_HOST: ${VIKUNJA_DATABASE_HOST}
       VIKUNJA_DATABASE_PASSWORD: ${VIKUNJA_DATABASE_PASSWORD}
@@ -56,12 +64,6 @@ services:
       - wud.watch=true
       - wud.tag.include=latest
       - wud.watch.digest=true
-      - traefik.enable=true
-      - traefik.http.routers.vikunja_server.rule=${VIKUNJA_TRAEFIK_HTTP_ROUTERS_VIKUNJA_SERVER_RULE}
-      - traefik.http.routers.vikunja_server.entrypoints=${VIKUNJA_TRAEFIK_HTTP_ROUTERS_VIKUNJA_SERVER_ENTRYPOINTS}
-      - traefik.http.routers.vikunja_server.tls=${VIKUNJA_TRAEFIK_HTTP_ROUTERS_VIKUNJA_SERVER_TLS}
-      - traefik.http.services.vikunja_server.loadbalancer.server.port=${VIKUNJA_TRAEFIK_HTTP_SERVICES_VIKUNJA_SERVER_LOADBALANCER_PORT}
-      - traefik.http.routers.vikunja_server.tls.certResolver=${VIKUNJA_TRAEFIK_HTTP_ROUTERS_VIKUNJA_SERVER_TLS_CERTRESOLVER}
 #    ports:
 #      - 3456:3456
     volumes:

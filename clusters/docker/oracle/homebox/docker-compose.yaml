@@ -1,6 +1,13 @@
 services:
   postgresdb:
       image: postgres
+      deploy:
+        labels:
+          - traefik.swarm.network=${TRAEFIK_SWARM_NETWORK}  
+          - traefik.http.routers.homebox.rule=${TRAEFIK_HTTP_ROUTERS_HOMEB0X_RULE}
+          - traefik.http.routers.homebox.entrypoints=${TRAEFIK_HTTP_ROUTERS_HOMEB0X_ENTRYPOINTS}
+          - traefik.http.routers.homebox.tls=${TRAEFIK_HTTP_ROUTERS_HOMEB0X_TLS}
+          - traefik.http.services.homebox.loadbalancer.server.port=${TRAEFIK_HTTP_SERVICES_HOMEB0X_LOADBALANCER_SERVER_PORT}
       restart: always
       volumes:
         - ${HOMEBOX_DATABASE_VOLUME}=/var/lib/postgresql/data/
@@ -48,10 +55,6 @@ services:
     labels:
 #      - wud.watch=true
       - traefik.enable=true
-      - traefik.http.routers.homebox.rule=${TRAEFIK_HTTP_ROUTERS_HOMEB0X_RULE}
-      - traefik.http.routers.homebox.entrypoints=${TRAEFIK_HTTP_ROUTERS_HOMEB0X_ENTRYPOINTS}
-      - traefik.http.routers.homebox.tls=${TRAEFIK_HTTP_ROUTERS_HOMEB0X_TLS}
-      - traefik.http.services.homebox.loadbalancer.server.port=${TRAEFIK_HTTP_SERVICES_HOMEB0X_LOADBALANCER_SERVER_PORT}
     networks:
       - proxy
       - homebox

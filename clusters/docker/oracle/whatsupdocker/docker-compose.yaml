@@ -5,6 +5,15 @@ services:
       placement:
         constraints:
           - node.role == manager
+      labels:
+      - traefik.enable=${TRAEFIK_ENABLE}
+      - traefik.swarm.network=${TRAEFIK_SWARM_NETWORK}
+      - traefik.http.routers.wud.rule=${TRAEFIK_HTTP_ROUTERS_WUD_RULE}
+      - traefik.http.routers.wud.entrypoints=${TRAEFIK_HTTP_ROUTERS_WUD_ENTRYPOINTS}
+      - traefik.http.routers.wud.tls=${TRAEFIK_HTTP_ROUTERS_WUD_TLS}
+      - traefik.http.routers.wud.tls.certresolver=${TRAEFIK_HTTP_ROUTERS_WUD_TLS_CERTRESOLVER}
+      - traefik.http.routers.wud.service=${TRAEFIK_HTTP_ROUTERS_WUD_SERVICE}
+      - traefik.http.services.wud.loadbalancer.server.port=${TRAEFIK_HTTP_SERVICES_WUD_LOADBALANCER_SERVER_PORT}
     container_name: wud
 #    user: 0:0
     volumes:
@@ -16,13 +25,6 @@ services:
       - 'wud.watch=true'
       - 'wud.tag.include=^\d+\.\d+\.\d+$$'
       - 'wud.link.template=https://github.com/getwud/wud/releases/tag/$${major}.$${minor}.$${patch}'
-      - traefik.enable=${TRAEFIK_ENABLE}
-      - traefik.http.routers.wud.rule=${TRAEFIK_HTTP_ROUTERS_WUD_RULE}
-      - traefik.http.routers.wud.entrypoints=${TRAEFIK_HTTP_ROUTERS_WUD_ENTRYPOINTS}
-      - traefik.http.routers.wud.tls=${TRAEFIK_HTTP_ROUTERS_WUD_TLS}
-      - traefik.http.routers.wud.tls.certresolver=${TRAEFIK_HTTP_ROUTERS_WUD_TLS_CERTRESOLVER}
-      - traefik.http.routers.wud.service=${TRAEFIK_HTTP_ROUTERS_WUD_SERVICE}
-      - traefik.http.services.wud.loadbalancer.server.port=${TRAEFIK_HTTP_SERVICES_WUD_LOADBALANCER_SERVER_PORT}    
     environment:
       - TZ=${TZ}
       #Server Settings
