@@ -9,13 +9,15 @@ services:
     volumes:
       - core-config:${CORE_CONFIG_VOLUME}:Z
       - core-data:${CORE_DATA_VOLUME}
-
     labels:
       traefik.enable: "true"
       traefik.tcp.routers.searxng.rule: ${TRAEFIK_HTTP_ROUTERS_SEARXNG_RULE}
       traefik.tcp.services.searxng.loadbalancer.server.port: ${TRAEFIK_HTTP_SERVICES_SEARXNG_LOADBALANCER_SERVER_PORT}
       traefik.tcp.routers.searxng.entrypoints: ${TRAEFIK_HTTP_ROUTERS_SEARXNG_ENTRYPOINTS}
       traefik.tcp.routers.searxng.tls: ${TRAEFIK_HTTP_ROUTERS_SEARXNG_TLS}
+    networks:
+      - proxy
+      - searxing
 
   valkey:
     container_name: searxng-valkey
@@ -24,8 +26,15 @@ services:
     restart: always
     volumes:
       - valkey-data:${VALKEY_DATA_VOLUME}
+    networks:
+      - searxing
 
 volumes:
   core-data:  
   core-config:  
   valkey-data:
+
+  networks:
+    proxy:
+      external: true
+    searxing:
