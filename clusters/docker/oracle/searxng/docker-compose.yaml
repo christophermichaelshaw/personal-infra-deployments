@@ -1,6 +1,19 @@
 services:
   core:
     container_name: searxng-core
+    deploy:
+      labels:
+        traefik.enable: ${TRAEFIK_ENABLE}
+        traefik.swarm.network: ${TRAEFIK_SWARM_NETWORK}
+        traefik.http.routers.searxng.rule: ${TRAEFIK_HTTP_ROUTERS_SEARXNG_RULE}
+        traefik.http.services.searxng.loadbalancer.server.port: ${TRAEFIK_HTTP_SERVICES_SEARXNG_LOADBALANCER_SERVER_PORT}
+        traefik.http.routers.searxng.entrypoints: ${TRAEFIK_HTTP_ROUTERS_SEARXNG_ENTRYPOINTS}
+        traefik.http.routers.searxng.tls: ${TRAEFIK_HTTP_ROUTERS_SEARXNG_TLS}
+        traefik.http.routers.searxng.tls.certresolver: ${TRAEFIK_HTTP_ROUTERS_SEARXNG_TLS_CERTRESOLVER}
+        traefik.http.routers.searxng.service: ${TRAEFIK_HTTP_ROUTERS_SEARXNG_SERVICE}
+      placement:
+        constraints:
+          - node.role == manager    
     image: docker.io/searxng/searxng:${SEARXNG_VERSION:-latest}
     restart: always
 #    ports:
@@ -9,12 +22,6 @@ services:
     volumes:
       - core-config:${CORE_CONFIG_VOLUME}:Z
       - core-data:${CORE_DATA_VOLUME}
-    labels:
-      traefik.enable: "true"
-      traefik.tcp.routers.searxng.rule: ${TRAEFIK_HTTP_ROUTERS_SEARXNG_RULE}
-      traefik.tcp.services.searxng.loadbalancer.server.port: ${TRAEFIK_HTTP_SERVICES_SEARXNG_LOADBALANCER_SERVER_PORT}
-      traefik.tcp.routers.searxng.entrypoints: ${TRAEFIK_HTTP_ROUTERS_SEARXNG_ENTRYPOINTS}
-      traefik.tcp.routers.searxng.tls: ${TRAEFIK_HTTP_ROUTERS_SEARXNG_TLS}
     networks:
       - proxy
       - searxing
@@ -27,6 +34,7 @@ services:
     volumes:
       - valkey-data:${VALKEY_DATA_VOLUME}
     networks:
+      - proxy
       - searxing
 
 volumes:
