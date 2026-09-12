@@ -34,7 +34,7 @@ volumes:
   core-config:  
   valkey-data:
 
-  networks:
-    proxy:
-      external: true
-    searxing:
+networks:
+  proxy:
+    external: true
+  searxing:
